@@ -3,16 +3,19 @@
     /// <summary>
     /// 题目模型
     /// </summary>
-    /// <param name="Id"></param>
-    /// <param name="Ttile"></param>
-    /// <param name="Content"></param>
-    /// <param name="Answer"></param>
-    /// <param name="Type">0单选题 1多选题 2判断题 3填空题 4问答题</param>
-    /// <param name="Score"></param>
-    /// <param name="Category">关联类目</param>
-    /// <param name="User">关联用户</param>
-    /// <param name="State">0禁用 1正常</param>
-    /// <param name="CreateTime"></param>
-    /// <param name="UpdateTime"></param>
-    public record Topic(long Id, string Ttile, string Content, string Answer, string Type, double Score, Category Category, User User, string State, DateTime CreateTime, DateTime UpdateTime);
+    public class Topic { 
+        public long Id { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public string Answer { get; set; }
+        // 0单选题 1多选题 2判断题 3填空题 4问答题
+        public string Type { get; set; }
+        public double Score { get; set; }
+        public Category Category { get; set; }
+        public User User { get; set; }
+        public List<Paper> Papers { get; set; } = new List<Paper>();
+        public string State { get; set; }
+        public DateTime CreateTime { get; set; }
+        public DateTime UpdateTime { get; set; }
+    }
 }

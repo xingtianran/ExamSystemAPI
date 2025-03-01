@@ -3,12 +3,15 @@
     /// <summary>
     /// 类目模型
     /// </summary>
-    /// <param name="Id"></param>
-    /// <param name="Parent"></param>
-    /// <param name="Name"></param>
-    /// <param name="User">关联用户</param>
-    /// <param name="State">0禁用 1正常</param>
-    /// <param name="CreateTime"></param>
-    /// <param name="UpdateTime"></param>
-    public record Category(long Id, Category Parent, string Name, User User, string State, DateTime CreateTime, DateTime UpdateTime);
+    public class Category { 
+        public long Id { get; set; }
+        public Category? Parent { get; set; }
+        public string Name { get; set; }
+        public User User { get; set; }
+        public List<Category> Children { get; set; } = new List<Category>();
+        public string State { get; set; }
+        public DateTime CreateTime { get; set; }
+        public DateTime UpdateTime { get; set; }
+
+    }
 }

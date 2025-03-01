@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ExamSystemAPI.Model.DbContext
+namespace ExamSystemAPI.Model.Config
 {
     public class UserConfig : IEntityTypeConfiguration<User>
     {
