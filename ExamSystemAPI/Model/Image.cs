@@ -5,12 +5,12 @@
     /// </summary>
     public class Image { 
         public long Id { get; set; }
-        public string Url { get; set; }
-        public string Name { get; set; }
-        public string Path { get; set; }
-        public string ContentType { get; set; }
-        public User User { get; set; }
-        public string State { get; set; }
+        public required string Url { get; set; }
+        public required string Name { get; set; }
+        public required string Path { get; set; }
+        public required string ContentType { get; set; }
+        public required User User { get; set; }
+        public required string State { get; set; }
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }
     }

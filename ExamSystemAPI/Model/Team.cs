@@ -1,17 +1,14 @@
 ﻿namespace ExamSystemAPI.Model
 {
-    /// <summary>
-    /// 类目模型
-    /// </summary>
-    public class Category { 
+    public class Team
+    {
         public long Id { get; set; }
-        public Category? Parent { get; set; }
         public required string Name { get; set; }
-        public required User User { get; set; }
-        public List<Category> Children { get; set; } = new List<Category>();
+        public required string Password { get; set; }
+        public int Count { get; set; }
         public required string State { get; set; }
+        public List<User> Users { get; set; } = new List<User>();
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }
-
     }
 }

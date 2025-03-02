@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ExamSystemAPI.Model.Config
+namespace ExamSystemAPI.Model.DbContexts
 {
     public class PaperConfig : IEntityTypeConfiguration<Paper>
     {
