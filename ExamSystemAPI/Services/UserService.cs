@@ -1,5 +1,5 @@
-﻿using ExamSystemAPI.Extensions;
-using ExamSystemAPI.Extensions.Request;
+﻿using ExamSystemAPI.Extensions.Request;
+using ExamSystemAPI.Extensions.Response;
 using ExamSystemAPI.Helper;
 using ExamSystemAPI.Interfaces;
 using ExamSystemAPI.Model;
@@ -29,7 +29,7 @@ namespace ExamSystemAPI.Services
         /// 初始化系统
         /// </summary>
         /// <returns></returns>
-        public async Task<ApiResponse> Init()
+        public async Task<BaseReponse> InitAsync()
         {
             try
             {
@@ -79,7 +79,7 @@ namespace ExamSystemAPI.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<ApiResponse> Register(RegisterRequest request)
+        public async Task<BaseReponse> RegisterAsync(RegisterRequest request)
         {
             try
             {
@@ -117,7 +117,7 @@ namespace ExamSystemAPI.Services
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public async Task<ApiResponse> Login(string username, string password)
+        public async Task<BaseReponse> LoginAsync(string username, string password)
         {
             try
             {
@@ -126,7 +126,7 @@ namespace ExamSystemAPI.Services
                 User? user = await userManager.FindByNameAsync(username);
                 if (user == null)
                     return new ApiResponse(400, "用户名或密码错误");
-                if (!await userManager.IsLockedOutAsync(user))
+                if (await userManager.IsLockedOutAsync(user))
                 {
                     return new ApiResponse(400, "用户已锁定,解锁日期:" + await userManager.GetLockoutEnabledAsync(user));
                 }
@@ -155,7 +155,7 @@ namespace ExamSystemAPI.Services
         /// 退出登录
         /// </summary>
         /// <returns></returns>
-        public async Task<ApiResponse> Logout()
+        public async Task<BaseReponse> LogoutAsync()
         {
             try
             {

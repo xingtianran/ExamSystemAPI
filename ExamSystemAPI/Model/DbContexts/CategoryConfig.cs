@@ -11,7 +11,7 @@ namespace ExamSystemAPI.Model.DbContexts
             builder.Property(c => c.Name).HasMaxLength(32);
             builder.Property(c => c.State).HasMaxLength(1);
             builder.HasOne(c => c.User).WithMany();
-            builder.HasOne(c => c.Parent).WithMany(c => c.Children).OnDelete(DeleteBehavior.NoAction);
+            builder.HasOne(c => c.Parent).WithMany(c => c.Children).HasForeignKey(c => c.ParentId).OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

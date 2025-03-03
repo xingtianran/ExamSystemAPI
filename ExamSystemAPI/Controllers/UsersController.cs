@@ -1,15 +1,13 @@
-﻿using ExamSystemAPI.Extensions;
-using ExamSystemAPI.Extensions.Request;
-using ExamSystemAPI.Helper;
+﻿using ExamSystemAPI.Extensions.Request;
+using ExamSystemAPI.Extensions.Response;
+using ExamSystemAPI.Helper.Filter;
 using ExamSystemAPI.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExamSystemAPI.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly IUserService userService;
@@ -24,7 +22,7 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpGet]
         [NotCheckJWTValiadation]
-        public Task<ApiResponse> Init() => userService.Init();
+        public Task<BaseReponse> Init() => userService.InitAsync();
 
         /// <summary>
         /// 注册
@@ -33,7 +31,7 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [NotCheckJWTValiadation]
-        public Task<ApiResponse> Register([FromQuery]RegisterRequest request) => userService.Register(request);
+        public Task<BaseReponse> Register([FromQuery]RegisterRequest request) => userService.RegisterAsync(request);
 
         /// <summary>
         /// 登录
@@ -43,14 +41,14 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [NotCheckJWTValiadation]
-        public Task<ApiResponse> Login(string username, string password) => userService.Login(username, password);
+        public Task<BaseReponse> Login(string username, string password) => userService.LoginAsync(username, password);
 
         /// <summary>
         /// 退出登录
         /// </summary>
         /// <returns></returns>
         [HttpDelete]
-        public Task<ApiResponse> Logout() => userService.Logout();
+        public Task<BaseReponse> Logout() => userService.LogoutAsync();
 
     }
 }

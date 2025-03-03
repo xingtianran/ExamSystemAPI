@@ -1,4 +1,4 @@
-﻿using ExamSystemAPI.Extensions;
+﻿using ExamSystemAPI.Extensions.Response;
 using ExamSystemAPI.Interfaces;
 using ExamSystemAPI.Model;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +8,7 @@ namespace ExamSystemAPI.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize(Roles = "teacher,admin")]
+    [Authorize(Roles = "admin,teacher")]
     public class TopicsController : ControllerBase
     {
         private readonly ITopicService topicService;
@@ -24,6 +24,6 @@ namespace ExamSystemAPI.Controllers
         /// <param name="topic"></param>
         /// <returns></returns>
         [HttpPost]
-        public Task<ApiResponse> AddNew([FromBody] Topic topic) => topicService.AddNew(topic);
+        public Task<BaseReponse> AddNew([FromBody] Topic topic) => topicService.AddNewAsync(topic);
     }
 }

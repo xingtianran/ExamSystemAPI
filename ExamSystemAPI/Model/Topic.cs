@@ -5,16 +5,16 @@
     /// </summary>
     public class Topic { 
         public long Id { get; set; }
-        public required string Title { get; set; }
-        public required string Content { get; set; }
-        public required string Answer { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public string Answer { get; set; }
         // 0单选题 1多选题 2判断题 3填空题 4问答题
-        public required string Type { get; set; }
+        public string Type { get; set; }
         public double Score { get; set; }
-        public required Category Category { get; set; }
-        public required User User { get; set; }
+        public Category Category { get; set; } = new Category();
+        public User User { get; set; } = new User();
         public List<Paper> Papers { get; set; } = new List<Paper>();
-        public required string State { get; set; }
+        public string State { get; set; } = "1";
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }
     }

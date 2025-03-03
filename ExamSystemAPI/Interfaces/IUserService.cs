@@ -1,13 +1,13 @@
-﻿using ExamSystemAPI.Extensions;
-using ExamSystemAPI.Extensions.Request;
+﻿using ExamSystemAPI.Extensions.Request;
+using ExamSystemAPI.Extensions.Response;
 
 namespace ExamSystemAPI.Interfaces
 {
     public interface IUserService
     {
-        Task<ApiResponse> Init();
-        Task<ApiResponse> Register(RegisterRequest request);
-        Task<ApiResponse> Login(string username, string password);
-        Task<ApiResponse> Logout();
+        Task<BaseReponse> InitAsync();
+        Task<BaseReponse> RegisterAsync(RegisterRequest request);
+        Task<BaseReponse> LoginAsync(string username, string password);
+        Task<BaseReponse> LogoutAsync();
     }
 }
