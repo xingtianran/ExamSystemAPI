@@ -1,9 +1,17 @@
+using ExamSystemAPI.Extensions;
+using ExamSystemAPI.Helper;
+using ExamSystemAPI.Helper.Filter;
 using ExamSystemAPI.Interfaces;
 using ExamSystemAPI.Model;
 using ExamSystemAPI.Model.DbContexts;
 using ExamSystemAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +20,31 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// 注册 IHttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
+// swagger配置 支持传递请求头
+builder.Services.AddSwaggerGen(c =>
+{
+    var scheme = new OpenApiSecurityScheme()
+    {
+        Description = "Authorization header. \r\nExample: 'Bearer 12345abcdef'",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Authorization"
+        },
+        Scheme = "oauth2",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+    };
+    c.AddSecurityDefinition("Authorization", scheme);
+    var requirement = new OpenApiSecurityRequirement();
+    requirement[scheme] = new List<string>();
+    c.AddSecurityRequirement(requirement);
+});
 
 // 添加数据库上下文
 builder.Services.AddDbContext<MyDbContext>(options =>
@@ -37,9 +69,36 @@ idBuilder.AddEntityFrameworkStores<MyDbContext>()
     .AddDefaultTokenProviders().AddUserManager<UserManager<User>>()
     .AddRoleManager<RoleManager<Role>>();
 
+// JWT配置
+builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opt =>
+    {
+        var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
+        byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecKey);
+        var secKey = new SymmetricSecurityKey(keyBytes);
+        opt.TokenValidationParameters = new()
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = secKey
+        };
+    });
+
+// 注册全局拦截器
+builder.Services.Configure<MvcOptions>(opt => 
+    { 
+        opt.Filters.Add<JWTValidationFilter>(); 
+    });
 
 // 服务类注入
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ClaimHelper>();
+builder.Services.AddScoped<JWTHelper>();
 
 var app = builder.Build();
 
@@ -52,6 +111,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -7,5 +7,7 @@ namespace ExamSystemAPI.Interfaces
     {
         Task<ApiResponse> Init();
         Task<ApiResponse> Register(RegisterRequest request);
+        Task<ApiResponse> Login(string username, string password);
+        Task<ApiResponse> Logout();
     }
 }
