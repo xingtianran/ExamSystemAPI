@@ -1,4 +1,5 @@
-﻿using ExamSystemAPI.Extensions.Response;
+﻿using ExamSystemAPI.Extensions.Request;
+using ExamSystemAPI.Extensions.Response;
 using ExamSystemAPI.Interfaces;
 using ExamSystemAPI.Model;
 using Microsoft.AspNetCore.Authorization;
@@ -25,5 +26,35 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         public Task<BaseReponse> AddNew([FromBody] Topic topic) => topicService.AddNewAsync(topic);
+
+
+        /// <summary>
+        /// 获取题目
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetSigle(long id) => topicService.GetSingleAsync(id);
+
+        /// <summary>
+        /// 获取题目列表
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetAll([FromQuery]QueryParametersRequest request) => topicService.GetAllAsync(request);
+
+
+        /// <summary>
+        /// 删除题目
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public Task<BaseReponse> Delete(long id) => topicService.DeleteAsync(id);
+
+        [HttpPut]
+        public Task<BaseReponse> Update(Topic topic) => topicService.UpdateAsync(topic);
+
     }
 }

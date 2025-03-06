@@ -5,12 +5,13 @@
     /// </summary>
     public class Topic { 
         public long Id { get; set; }
-        public string Title { get; set; }
-        public string Content { get; set; }
-        public string Answer { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public string Answer { get; set; } = string.Empty;
         // 0单选题 1多选题 2判断题 3填空题 4问答题
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
         public double Score { get; set; }
+        public long CategoryId { get; set; }
         public Category Category { get; set; } = new Category();
         public User User { get; set; } = new User();
         public List<Paper> Papers { get; set; } = new List<Paper>();

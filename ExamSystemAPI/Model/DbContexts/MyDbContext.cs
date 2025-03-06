@@ -9,7 +9,7 @@ namespace ExamSystemAPI.Model.DbContexts
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<Paper> Papers { get; set; }
-        public DbSet<Team> Topics { get; set; }
+        public DbSet<Topic> Topics { get; set; }
         public DbSet<Image> Images { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)

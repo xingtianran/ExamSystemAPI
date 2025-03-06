@@ -13,7 +13,7 @@ namespace ExamSystemAPI.Model.DbContexts
             builder.Property(t => t.Answer).HasMaxLength(512);
             builder.Property(t => t.Type).HasMaxLength(1);
             builder.Property(t => t.State).HasMaxLength(1);
-            builder.HasOne(t => t.Category).WithMany().OnDelete(DeleteBehavior.NoAction);
+            builder.HasOne(t => t.Category).WithMany().HasForeignKey(t => t.CategoryId).OnDelete(DeleteBehavior.NoAction);
             builder.HasOne(t => t.User).WithMany().OnDelete(DeleteBehavior.NoAction);
         }
     }

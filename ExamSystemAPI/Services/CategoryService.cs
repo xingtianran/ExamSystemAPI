@@ -131,7 +131,6 @@ namespace ExamSystemAPI.Services
                 categoryFromDB.State = category.State;
                 categoryFromDB.ParentId = category.ParentId;
                 categoryFromDB.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
-                categoryFromDB.CreateTime = DateTime.Now;
                 categoryFromDB.UpdateTime = DateTime.Now;
                 ctx.Categories.Update(categoryFromDB);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "更新成功") : new ApiResponse(500, "更新失败");
