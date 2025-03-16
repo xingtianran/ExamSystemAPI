@@ -5,10 +5,10 @@
     /// </summary>
     public class Image { 
         public long Id { get; set; }
-        public string Url { get; set; }
-        public string Name { get; set; }
-        public string Path { get; set; }
-        public string ContentType { get; set; }
+        public string Url { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Path { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
         public User User { get; set; } = new User();
         public string State { get; set; } = "1";
         public DateTime CreateTime { get; set; }
