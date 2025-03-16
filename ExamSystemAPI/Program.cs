@@ -97,6 +97,7 @@ builder.Services.Configure<MvcOptions>(opt =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IPaperService, PaperService>();
 builder.Services.AddScoped<ClaimHelper>();
 builder.Services.AddScoped<JWTHelper>();
 

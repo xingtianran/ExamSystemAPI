@@ -53,8 +53,13 @@ namespace ExamSystemAPI.Controllers
         [HttpDelete]
         public Task<BaseReponse> Delete(long id) => topicService.DeleteAsync(id);
 
+        /// <summary>
+        /// 更新题目
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <returns></returns>
         [HttpPut]
-        public Task<BaseReponse> Update(Topic topic) => topicService.UpdateAsync(topic);
+        public Task<BaseReponse> Update([FromBody]Topic topic) => topicService.UpdateAsync(topic);
 
     }
 }
