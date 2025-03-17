@@ -3,7 +3,7 @@
     /// <summary>
     /// 试卷模型
     /// </summary>
-    public class Paper { 
+    public class Paper {
         public long Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public double Score { get; set; }
@@ -12,8 +12,8 @@
         public User User { get; set; } = new User();
         public List<long> TopicIds { get; set; } = new List<long>();
         public List<Topic> Topics { get; set; } = new List<Topic>();
+        public List<Team> Teams { get; set; } = new List<Team>();
         public string State { get; set; } = "1";
-        public DateTime Deadline { get; set; }
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }
     }

@@ -122,21 +122,52 @@ namespace ExamSystemAPI.Services
         /// <returns></returns>
         public async Task<BaseReponse> UpdateAsync(Paper paper)
         {
-            if (paper.Id == 0) return new ApiResponse(400, "试卷编号不能为空");
-            if (string.IsNullOrEmpty(paper.Title)) return new ApiResponse(400, "试卷标题不能为空");
-            if (paper.CategoryId == 0) return new ApiResponse(400, "试卷类目不能为空");
-            if (paper.TopicIds.Count == 0) return new ApiResponse(400, "请添加题目");
-            Paper paperFromDB = await ctx.Papers.SingleAsync(p => p.Id == paper.Id);
-            paperFromDB.Title = paper.Title;
-            paperFromDB.CategoryId = paper.CategoryId;
-            // 填充题目数据
-            List<Topic> topics = await ctx.Topics.Where(t => paper.TopicIds.Contains(t.Id)).ToListAsync();
-            paperFromDB.Topics = topics;
-            // 处理不合法数据
-            paperFromDB.State = paper.State == "1" ? paper.State : "0";
-            paperFromDB.UpdateTime = DateTime.Now;
-            ctx.Papers.Update(paperFromDB);
-            return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "更新成功") : new ApiResponse(500, "更新失败");
+            try
+            {
+                if (paper.Id == 0) return new ApiResponse(400, "试卷编号不能为空");
+                if (string.IsNullOrEmpty(paper.Title)) return new ApiResponse(400, "试卷标题不能为空");
+                if (paper.CategoryId == 0) return new ApiResponse(400, "试卷类目不能为空");
+                if (paper.TopicIds.Count == 0) return new ApiResponse(400, "请添加题目");
+                Paper paperFromDB = await ctx.Papers.SingleAsync(p => p.Id == paper.Id);
+                paperFromDB.Title = paper.Title;
+                paperFromDB.CategoryId = paper.CategoryId;
+                // 填充题目数据
+                List<Topic> topics = await ctx.Topics.Where(t => paper.TopicIds.Contains(t.Id)).ToListAsync();
+                paperFromDB.Topics = topics;
+                // 处理不合法数据
+                paperFromDB.State = paper.State == "1" ? paper.State : "0";
+                paperFromDB.UpdateTime = DateTime.Now;
+                ctx.Papers.Update(paperFromDB);
+                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "更新成功") : new ApiResponse(500, "更新失败");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 发布试卷
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> PublishAsync(PublishPaperRequest request)
+        {
+            try
+            {
+                if (request.PaperId == 0) return new ApiResponse(400, "试卷编号不能为空");
+                if (request.TeamId == 0) return new ApiResponse(400, "组编号不能为空");
+                if (request.Deadline < DateTime.Now) return new ApiResponse(400, "请设置正确时间");
+                PaperTeam paperTeam = new PaperTeam();
+                paperTeam.PaperId = request.PaperId;
+                paperTeam.TeamId = request.TeamId;
+                paperTeam.Deadline = request.Deadline;
+                await ctx.PaperTeams.AddAsync(paperTeam);
+                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "发布成功") : new ApiResponse(500, "发布失败");
+            }
+            catch (Exception ex) { 
+                return new ApiResponse (500, ex.Message);
+            }
         }
     }
 }

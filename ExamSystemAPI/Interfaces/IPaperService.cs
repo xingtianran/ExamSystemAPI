@@ -11,5 +11,6 @@ namespace ExamSystemAPI.Interfaces
         Task<BaseReponse> GetAllAsync(QueryParametersRequest request);
         Task<BaseReponse> DeleteAsync(long id);
         Task<BaseReponse> UpdateAsync(Paper paper);
+        Task<BaseReponse> PublishAsync(PublishPaperRequest request);
     }
 }

@@ -4,6 +4,7 @@ using ExamSystemAPI.Model.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExamSystemAPI.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250317132315_RemoveDealine")]
+    partial class RemoveDealine
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -450,24 +453,6 @@ namespace ExamSystemAPI.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("T_Papers_Teams", b =>
-                {
-                    b.Property<long>("PaperId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TeamId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("Deadline")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("PaperId", "TeamId");
-
-                    b.HasIndex("TeamId");
-
-                    b.ToTable("T_Papers_Teams");
-                });
-
             modelBuilder.Entity("T_Papers_Topics", b =>
                 {
                     b.Property<long>("PapersId")
@@ -619,25 +604,6 @@ namespace ExamSystemAPI.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("T_Papers_Teams", b =>
-                {
-                    b.HasOne("ExamSystemAPI.Model.Paper", "Paper")
-                        .WithMany()
-                        .HasForeignKey("PaperId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ExamSystemAPI.Model.Team", "Team")
-                        .WithMany()
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Paper");
-
-                    b.Navigation("Team");
                 });
 
             modelBuilder.Entity("T_Papers_Topics", b =>

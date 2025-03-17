@@ -12,10 +12,16 @@ namespace ExamSystemAPI.Model.DbContexts
             builder.Property(p => p.State).HasMaxLength(1);
             builder.HasOne(p => p.User).WithMany();
             builder.HasOne(p => p.Category).WithMany().HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.NoAction);
+
             builder.HasMany(p => p.Topics).WithMany(t => t.Papers).UsingEntity("T_Papers_Topics", j => {
                 j.Property<DateTime>("CreateTime")
                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
+
+            builder.HasMany(p => p.Teams).WithMany(t => t.Papers).UsingEntity<PaperTeam>("T_Papers_Teams",
+                j => j.HasOne(pt => pt.Team).WithMany().HasForeignKey(pt => pt.TeamId),
+                j => j.HasOne(pt => pt.Paper).WithMany().HasForeignKey(pt => pt.PaperId)
+                );
         }
     }
 }

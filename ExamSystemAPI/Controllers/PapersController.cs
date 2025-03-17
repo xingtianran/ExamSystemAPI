@@ -59,5 +59,14 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpPut]
         public Task<BaseReponse> Update([FromBody]Paper paper) => paperService.UpdateAsync(paper);
+
+        /// <summary>
+        /// 发布试卷
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+
+        [HttpPost]
+        public Task<BaseReponse> Publish([FromQuery]PublishPaperRequest request) => paperService.PublishAsync(request);
     }
 }
