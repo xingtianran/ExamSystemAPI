@@ -25,7 +25,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="topic"></param>
         /// <returns></returns>
         [HttpPost]
-        public Task<BaseReponse> AddNew([FromBody] Topic topic) => topicService.AddNewAsync(topic);
+        public Task<BaseReponse> AddNew([FromBody] Topic topic, string sign) => topicService.AddNewAsync(topic, sign);
 
 
         /// <summary>

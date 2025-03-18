@@ -12,6 +12,7 @@ namespace ExamSystemAPI.Model.DbContexts
         public DbSet<Topic> Topics { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<PaperTeam> PaperTeams { get; set; }
+        public DbSet<PaperTopic> PaperTopics { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

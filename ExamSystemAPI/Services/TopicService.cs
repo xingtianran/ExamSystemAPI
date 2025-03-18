@@ -5,6 +5,7 @@ using ExamSystemAPI.Model;
 using ExamSystemAPI.Model.DbContexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
 
 namespace ExamSystemAPI.Services
@@ -15,12 +16,14 @@ namespace ExamSystemAPI.Services
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly UserManager<User> userManager;
         private readonly MyDbContext ctx;
+        private readonly IMemoryCache cache;
 
-        public TopicService(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, MyDbContext ctx)
+        public TopicService(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, MyDbContext ctx, IMemoryCache cache)
         {
             this.httpContextAccessor = httpContextAccessor;
             this.userManager = userManager;
             this.ctx = ctx;
+            this.cache = cache;
         }
 
         /// <summary>
@@ -28,7 +31,7 @@ namespace ExamSystemAPI.Services
         /// </summary>
         /// <param name="topic"></param>
         /// <returns></returns>
-        public async Task<BaseReponse> AddNewAsync(Topic topic)
+        public async Task<BaseReponse> AddNewAsync(Topic topic, string sign)
         {
             try
             {
@@ -42,6 +45,12 @@ namespace ExamSystemAPI.Services
                 topic.CreateTime = DateTime.Now;
                 topic.UpdateTime = DateTime.Now;
                 await ctx.Topics.AddAsync(topic);
+                // 将题目编号保存到内存，key为uuid值，保存时间为一个小时
+                var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(1));
+                if (cache.TryGetValue(sign, out var value))
+                    cache.Set(sign, value + "#" + topic.Id, cacheOptions);
+                else
+                    cache.Set(sign, topic.Id, cacheOptions);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "添加成功") : new ApiResponse(500, "添加失败");
             }
             catch (Exception ex)

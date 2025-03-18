@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -86,6 +87,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = secKey
         };
     });
+
+// 注册 MemoryCache 为单例服务
+builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
 
 // 注册全局拦截器
 builder.Services.Configure<MvcOptions>(opt => 
