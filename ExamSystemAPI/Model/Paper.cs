@@ -10,7 +10,6 @@
         public long CategoryId { get; set; }
         public Category Category { get; set; } = new Category();
         public User User { get; set; } = new User();
-        public List<long> TopicIds { get; set; } = new List<long>();
         public List<Topic> Topics { get; set; } = new List<Topic>();
         public List<Team> Teams { get; set; } = new List<Team>();
         public string State { get; set; } = "1";

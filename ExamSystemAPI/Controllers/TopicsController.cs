@@ -25,7 +25,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="topic"></param>
         /// <returns></returns>
         [HttpPost]
-        public Task<BaseReponse> AddNew([FromBody] Topic topic, string sign) => topicService.AddNewAsync(topic, sign);
+        public Task<BaseReponse> AddNew([FromBody] Topic topic) => topicService.AddNewAsync(topic);
 
 
         /// <summary>
@@ -60,6 +60,15 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpPut]
         public Task<BaseReponse> Update([FromBody]Topic topic) => topicService.UpdateAsync(topic);
+
+
+        /// <summary>
+        /// 添加题目到试卷
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<ApiResponse> AddTopic2Paper([FromQuery]AddTopic2PaperRequest request) => topicService.AddTopic2PaperAsync(request);
 
     }
 }

@@ -24,7 +24,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="paper"></param>
         /// <returns></returns>
         [HttpPost]
-        public Task<BaseReponse> AddNew([FromBody] Paper paper) => paperService.AddNewAsync(paper);
+        public Task<BaseReponse> AddNew([FromBody] Paper paper, string sign) => paperService.AddNewAsync(paper, sign);
 
 
         /// <summary>

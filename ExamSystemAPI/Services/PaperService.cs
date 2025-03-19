@@ -1,11 +1,12 @@
-﻿using ExamSystemAPI.Extensions.Request;
+﻿using System.Security.Claims;
+using ExamSystemAPI.Extensions.Request;
 using ExamSystemAPI.Extensions.Response;
 using ExamSystemAPI.Interfaces;
 using ExamSystemAPI.Model;
 using ExamSystemAPI.Model.DbContexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ExamSystemAPI.Services
 {
@@ -15,12 +16,14 @@ namespace ExamSystemAPI.Services
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly UserManager<User> userManager;
         private readonly MyDbContext ctx;
+        private readonly IMemoryCache cache;
 
-        public PaperService(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, MyDbContext ctx)
+        public PaperService(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, MyDbContext ctx, IMemoryCache cache)
         {
             this.httpContextAccessor = httpContextAccessor;
             this.userManager = userManager;
             this.ctx = ctx;
+            this.cache = cache;
         }
 
         /// <summary>
@@ -28,7 +31,7 @@ namespace ExamSystemAPI.Services
         /// </summary>
         /// <param name="paper"></param>
         /// <returns></returns>
-        public async Task<BaseReponse> AddNewAsync(Paper paper)
+        public async Task<BaseReponse> AddNewAsync(Paper paper, string sign)
         {
             try
             {
@@ -37,11 +40,63 @@ namespace ExamSystemAPI.Services
                 // 填充数据
                 paper.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
                 // 取出完整数据放入paper中，插入数据库，关联起来
-                List<Topic> topics = await ctx.Topics.Where(t => paper.TopicIds.Contains(t.Id)).ToListAsync();
-                paper.Topics = topics;
-                // 添加试卷，deadline不设置
+                // List<Topic> topics = await ctx.Topics.Where(t => paper.TopicIds.Contains(t.Id)).ToListAsync();
+                // 在内存中取出该试卷下的题目编号
+                // 题目编号/时间戳#题目编号/时间戳
+                // 内存中的格式:1/1679212200#2/1679212210
+                string? value = null;
+                List<Topic> topics = new List<Topic>();
+                if (string.IsNullOrEmpty(paper.Title))
+                if (cache.TryGetValue<string>(sign, out value)) {
+                        Topic? temp = null;
+                        if (value != null)
+                        {
+                            string? id = null;
+                            string? timestamp = null;
+                            if (value.Contains('#'))
+                            {
+                                string[] idTimeArray = value.Split('#');
+                                List<Topic> idTimeList = new List<Topic>();
+                                foreach (string idTime in idTimeArray) {
+                                    id = idTime.Split('/')[0];
+                                    timestamp = idTime.Split("/")[1];
+                                    // 时间戳转化为DateTime类型
+                                    idTimeList.Add(new Topic { Id = long.Parse(id), TempTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(timestamp)).DateTime });
+                                }
+                                foreach (Topic item in idTimeList) {
+                                    temp = await ctx.Topics.SingleAsync(t => t.Id == item.Id);
+                                    temp.TempTime = item.TempTime;
+                                    topics.Add(temp);
+                                }
+                            }
+                            else
+                            {
+                                id = value.Split('/')[0];
+                                timestamp = value.Split('/')[1];
+                                temp = await ctx.Topics.SingleAsync(t => t.Id == long.Parse(id));
+                                temp.TempTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(timestamp)).DateTime;
+                                topics.Add(temp);
+                            }
+                        }
+                        else {
+                            throw new InvalidOperationException();
+                        }
+                }
+                paper.Topics = topics!;
                 paper.CreateTime = DateTime.Now;
                 paper.UpdateTime = DateTime.Now;
+                // 保存到关联表 PaperTopic
+                List<PaperTopic> paperTopicList = new List<PaperTopic>();
+                foreach (Topic topic in paper.Topics) {
+                    PaperTopic paperTopic = new PaperTopic();
+                    paperTopic.PaperId = paper.Id;
+                    paperTopic.TopicId = topic.Id;
+                    paperTopic.CreateTime = topic.TempTime;
+                    paperTopicList.Add(paperTopic);
+                }
+                // 保存到关联表
+                await ctx.PaperTopics.AddRangeAsync(paperTopicList);
+                // 保存到试卷表
                 await ctx.Papers.AddAsync(paper);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "增加成功") : new ApiResponse(500, "增加失败");
             }
@@ -127,13 +182,13 @@ namespace ExamSystemAPI.Services
                 if (paper.Id == 0) return new ApiResponse(400, "试卷编号不能为空");
                 if (string.IsNullOrEmpty(paper.Title)) return new ApiResponse(400, "试卷标题不能为空");
                 if (paper.CategoryId == 0) return new ApiResponse(400, "试卷类目不能为空");
-                if (paper.TopicIds.Count == 0) return new ApiResponse(400, "请添加题目");
+                // if (paper.TopicIds.Count == 0) return new ApiResponse(400, "请添加题目");
                 Paper paperFromDB = await ctx.Papers.SingleAsync(p => p.Id == paper.Id);
                 paperFromDB.Title = paper.Title;
                 paperFromDB.CategoryId = paper.CategoryId;
                 // 填充题目数据
-                List<Topic> topics = await ctx.Topics.Where(t => paper.TopicIds.Contains(t.Id)).ToListAsync();
-                paperFromDB.Topics = topics;
+                // List<Topic> topics = await ctx.Topics.Where(t => paper.TopicIds.Contains(t.Id)).ToListAsync();
+                // paperFromDB.Topics = topics;
                 // 处理不合法数据
                 paperFromDB.State = paper.State == "1" ? paper.State : "0";
                 paperFromDB.UpdateTime = DateTime.Now;

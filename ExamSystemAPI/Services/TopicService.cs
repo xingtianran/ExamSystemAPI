@@ -31,7 +31,7 @@ namespace ExamSystemAPI.Services
         /// </summary>
         /// <param name="topic"></param>
         /// <returns></returns>
-        public async Task<BaseReponse> AddNewAsync(Topic topic, string sign)
+        public async Task<BaseReponse> AddNewAsync(Topic topic)
         {
             try
             {
@@ -45,12 +45,6 @@ namespace ExamSystemAPI.Services
                 topic.CreateTime = DateTime.Now;
                 topic.UpdateTime = DateTime.Now;
                 await ctx.Topics.AddAsync(topic);
-                // 将题目编号保存到内存，key为uuid值，保存时间为一个小时
-                var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(1));
-                if (cache.TryGetValue(sign, out var value))
-                    cache.Set(sign, value + "#" + topic.Id, cacheOptions);
-                else
-                    cache.Set(sign, topic.Id, cacheOptions);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "添加成功") : new ApiResponse(500, "添加失败");
             }
             catch (Exception ex)
@@ -58,6 +52,7 @@ namespace ExamSystemAPI.Services
                 return new ApiResponse(500, ex.Message);
             }
         }
+
 
         /// <summary>
         /// 删除题目
@@ -150,6 +145,32 @@ namespace ExamSystemAPI.Services
             }
             catch (Exception ex) {
                 return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 添加题目到试卷
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public Task<ApiResponse> AddTopic2PaperAsync(AddTopic2PaperRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.sign)) return Task.FromResult(new ApiResponse(400, "试卷唯一标识不能为空"));
+                if (request.TopicId == 0) return Task.FromResult(new ApiResponse(400, "题目编号不能为空"));
+                string sign = request.sign;
+                long topicId = request.TopicId;
+                // 将题目编号保存到内存，key为uuid值，保存时间为一个小时
+                var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(1));
+                if (cache.TryGetValue(sign, out var value))
+                    cache.Set(sign, value + "#" + topicId + "/" + DateTime.Now, cacheOptions);
+                else
+                    cache.Set(sign, topicId + "/" + DateTime.Now, cacheOptions);
+                return Task.FromResult(new ApiResponse(200, "添加成功"));
+            }
+            catch (Exception ex) {
+                return Task.FromResult(new ApiResponse(500, ex.Message));
             }
         }
     }

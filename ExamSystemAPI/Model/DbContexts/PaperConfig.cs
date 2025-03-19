@@ -7,7 +7,8 @@ namespace ExamSystemAPI.Model.DbContexts
     {
         public void Configure(EntityTypeBuilder<Paper> builder)
         {
-            builder.ToTable("T_Papers").Ignore(p => p.TopicIds);
+            // builder.ToTable("T_Papers").Ignore(p => p.TopicIds);
+            builder.ToTable("T_Papers");
             builder.Property(p => p.Title).HasMaxLength(32);
             builder.Property(p => p.State).HasMaxLength(1);
             builder.HasOne(p => p.User).WithMany();

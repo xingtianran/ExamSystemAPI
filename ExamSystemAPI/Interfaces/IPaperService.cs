@@ -6,7 +6,7 @@ namespace ExamSystemAPI.Interfaces
 {
     public interface IPaperService
     {
-        Task<BaseReponse> AddNewAsync(Paper paper);
+        Task<BaseReponse> AddNewAsync(Paper paper, string sign);
         Task<BaseReponse> GetSingleAsync(long id);
         Task<BaseReponse> GetAllAsync(QueryParametersRequest request);
         Task<BaseReponse> DeleteAsync(long id);

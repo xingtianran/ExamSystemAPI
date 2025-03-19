@@ -16,6 +16,7 @@
         public User User { get; set; } = new User();
         public List<Paper> Papers { get; set; } = new List<Paper>();
         public string State { get; set; } = "1";
+        public DateTime TempTime { get; set; }
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }
     }
