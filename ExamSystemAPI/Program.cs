@@ -76,7 +76,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
         var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
-        byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecKey);
+        byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings!.SecKey);
         var secKey = new SymmetricSecurityKey(keyBytes);
         opt.TokenValidationParameters = new()
         {
@@ -90,6 +90,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // 注册 MemoryCache 为单例服务
 builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
+
+// 注册托管服务
+builder.Services.AddHostedService<ExamPaperExpirationService>();
 
 // 注册全局拦截器
 builder.Services.Configure<MvcOptions>(opt => 

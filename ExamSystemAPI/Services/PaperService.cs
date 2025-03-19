@@ -46,48 +46,52 @@ namespace ExamSystemAPI.Services
                 // 内存中的格式:1/1679212200#2/1679212210
                 string? value = null;
                 List<Topic> topics = new List<Topic>();
-                if (string.IsNullOrEmpty(paper.Title))
-                if (cache.TryGetValue<string>(sign, out value)) {
-                        Topic? temp = null;
-                        if (value != null)
+                if (cache.TryGetValue<string>(sign, out value))
+                {
+                    Topic? temp = null;
+                    if (value != null)
+                    {
+                        string? id = null;
+                        string? timestamp = null;
+                        if (value.Contains('#'))
                         {
-                            string? id = null;
-                            string? timestamp = null;
-                            if (value.Contains('#'))
+                            string[] idTimeArray = value.Split('#');
+                            List<Topic> idTimeList = new List<Topic>();
+                            foreach (string idTime in idTimeArray)
                             {
-                                string[] idTimeArray = value.Split('#');
-                                List<Topic> idTimeList = new List<Topic>();
-                                foreach (string idTime in idTimeArray) {
-                                    id = idTime.Split('/')[0];
-                                    timestamp = idTime.Split("/")[1];
-                                    // 时间戳转化为DateTime类型
-                                    idTimeList.Add(new Topic { Id = long.Parse(id), TempTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(timestamp)).DateTime });
-                                }
-                                foreach (Topic item in idTimeList) {
-                                    temp = await ctx.Topics.SingleAsync(t => t.Id == item.Id);
-                                    temp.TempTime = item.TempTime;
-                                    topics.Add(temp);
-                                }
+                                id = idTime.Split('/')[0];
+                                timestamp = idTime.Split("/")[1];
+                                // 时间戳转化为DateTime类型
+                                idTimeList.Add(new Topic { Id = long.Parse(id), TempTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(timestamp)).DateTime });
                             }
-                            else
+                            foreach (Topic item in idTimeList)
                             {
-                                id = value.Split('/')[0];
-                                timestamp = value.Split('/')[1];
-                                temp = await ctx.Topics.SingleAsync(t => t.Id == long.Parse(id));
-                                temp.TempTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(timestamp)).DateTime;
+                                temp = await ctx.Topics.SingleAsync(t => t.Id == item.Id);
+                                temp.TempTime = item.TempTime;
                                 topics.Add(temp);
                             }
                         }
-                        else {
-                            throw new InvalidOperationException();
+                        else
+                        {
+                            id = value.Split('/')[0];
+                            timestamp = value.Split('/')[1];
+                            temp = await ctx.Topics.SingleAsync(t => t.Id == long.Parse(id));
+                            temp.TempTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(timestamp)).DateTime;
+                            topics.Add(temp);
                         }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
                 }
                 paper.Topics = topics!;
                 paper.CreateTime = DateTime.Now;
                 paper.UpdateTime = DateTime.Now;
                 // 保存到关联表 PaperTopic
                 List<PaperTopic> paperTopicList = new List<PaperTopic>();
-                foreach (Topic topic in paper.Topics) {
+                foreach (Topic topic in paper.Topics)
+                {
                     PaperTopic paperTopic = new PaperTopic();
                     paperTopic.PaperId = paper.Id;
                     paperTopic.TopicId = topic.Id;
@@ -220,8 +224,9 @@ namespace ExamSystemAPI.Services
                 await ctx.PaperTeams.AddAsync(paperTeam);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "发布成功") : new ApiResponse(500, "发布失败");
             }
-            catch (Exception ex) { 
-                return new ApiResponse (500, ex.Message);
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
             }
         }
     }

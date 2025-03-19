@@ -21,7 +21,8 @@ namespace ExamSystemAPI.Model.DbContexts
 
             builder.HasMany(p => p.Teams).WithMany(t => t.Papers).UsingEntity<PaperTeam>("T_Papers_Teams",
                 j => j.HasOne(pt => pt.Team).WithMany().HasForeignKey(pt => pt.TeamId),
-                j => j.HasOne(pt => pt.Paper).WithMany().HasForeignKey(pt => pt.PaperId)
+                j => j.HasOne(pt => pt.Paper).WithMany().HasForeignKey(pt => pt.PaperId),
+                j => j.Property(pt => pt.State).HasMaxLength(1)
                 );
         }
     }
