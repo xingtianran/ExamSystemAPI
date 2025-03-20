@@ -50,5 +50,14 @@ namespace ExamSystemAPI.Controllers
         [HttpDelete]
         public Task<BaseReponse> Logout() => userService.LogoutAsync();
 
+
+        /// <summary>
+        /// 加入组
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> JoinTeam([FromQuery]JoinTeamRequest request) => userService.JoinTeamAsync(request);
+
     }
 }

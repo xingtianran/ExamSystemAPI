@@ -25,6 +25,7 @@ builder.Services.AddEndpointsApiExplorer();
 // 注册 IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
+// builder.Services.AddSwaggerGen();
 // swagger配置 支持传递请求头
 builder.Services.AddSwaggerGen(c =>
 {

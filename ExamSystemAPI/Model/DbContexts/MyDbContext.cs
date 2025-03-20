@@ -10,6 +10,7 @@ namespace ExamSystemAPI.Model.DbContexts
         public DbSet<Category> Categories { get; set; }
         public DbSet<Paper> Papers { get; set; }
         public DbSet<Topic> Topics { get; set; }
+        public DbSet<Team> Teams { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<PaperTeam> PaperTeams { get; set; }
         public DbSet<PaperTopic> PaperTopics { get; set; }

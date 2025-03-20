@@ -3,7 +3,9 @@ using ExamSystemAPI.Extensions.Response;
 using ExamSystemAPI.Helper;
 using ExamSystemAPI.Interfaces;
 using ExamSystemAPI.Model;
+using ExamSystemAPI.Model.DbContexts;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace ExamSystemAPI.Services
@@ -15,14 +17,16 @@ namespace ExamSystemAPI.Services
         private readonly ClaimHelper claimHelper;
         private readonly JWTHelper jwtHelper;
         private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly MyDbContext ctx;
 
-        public UserService(UserManager<User> userManager, RoleManager<Role> roleManager, ClaimHelper claimHelper, JWTHelper jwtHelper, IHttpContextAccessor httpContextAccessor)
+        public UserService(UserManager<User> userManager, RoleManager<Role> roleManager, ClaimHelper claimHelper, JWTHelper jwtHelper, IHttpContextAccessor httpContextAccessor, MyDbContext ctx)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.claimHelper = claimHelper;
             this.jwtHelper = jwtHelper;
             this.httpContextAccessor = httpContextAccessor;
+            this.ctx = ctx;
         }
 
         /// <summary>
@@ -168,6 +172,36 @@ namespace ExamSystemAPI.Services
             }
             catch (Exception ex)
             {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 加入组
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> JoinTeamAsync(JoinTeamRequest request)
+        {
+            try
+            {
+                if (request.TeamId == 0) return new ApiResponse(400, "组编号不能为空");
+                if (request.UserId == 0) return new ApiResponse(400, "用户编号不能为空");
+                if (string.IsNullOrEmpty(request.Password)) return new ApiResponse(400, "密码不能为空");
+                long teamId = request.TeamId;
+                long userId = request.UserId;
+                string password = request.Password;
+                Team team = await ctx.Teams.SingleAsync(t => t.Id == teamId);
+                if (team.Password != password)
+                    return new ApiResponse(400, "密码不正确");
+                User user = await ctx.Users.SingleAsync(u => u.Id == userId);
+                team.Users.Add(user);
+                user.Teams.Add(team);
+                await ctx.Users.AddAsync(user);
+                await ctx.Teams.AddAsync(team);
+                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "加入成功") : new ApiResponse(500, "加入失败");
+            }
+            catch (Exception ex) { 
                 return new ApiResponse(500, ex.Message);
             }
         }
