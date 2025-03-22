@@ -7,6 +7,7 @@ namespace ExamSystemAPI.Model
     /// </summary>
     public class User : IdentityUser<long> {
         public long JWTVersion { get; set; }
+        public string Avatar { get; set; } = "5e5153cd-e9a3-450d-9070-3c3aedb87f6c.jpg";
         public List<Team> Teams { get; set; } = new List<Team>();
     }
 }

@@ -166,9 +166,44 @@ namespace ExamSystemAPI.Services
                 string id = httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
                 User? user = await userManager.FindByIdAsync(id);
                 // JWT版本加一，之前版本失效
-                user.JWTVersion++;
+                user!.JWTVersion++;
                 await userManager.UpdateAsync(user);
                 return new ApiResponse(200, "退出成功");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 查询全部用户
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetAllAsync(QueryParametersRequest request) {
+            try
+            {
+                int page = request.Page;
+                int size = request.Size;
+                int startIndex = (page - 1) * size;
+                var baseSet = userManager.Users;
+                var data = await baseSet.Skip(startIndex).Take(size).ToListAsync();
+                var count = await baseSet.CountAsync();
+                var totalPage = (int)Math.Ceiling(count * 1.0 / size);
+                List<UserInfoResponse> response = new List<UserInfoResponse>();
+                foreach (var user in data)
+                {
+                    UserInfoResponse userInfo = new UserInfoResponse();
+                    userInfo.Id = user.Id;
+                    userInfo.UserName = user.UserName!;
+                    userInfo.Avatar = user.Avatar;
+                    // 查询用户下的角色
+                    var roles = await userManager.GetRolesAsync(user);
+                    userInfo.Roles = roles;
+                    response.Add(userInfo);
+                }
+                return new PageInfoResponse<UserInfoResponse>(200, "获取成功", page, size, totalPage, response);
             }
             catch (Exception ex)
             {
@@ -202,6 +237,30 @@ namespace ExamSystemAPI.Services
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "加入成功") : new ApiResponse(500, "加入失败");
             }
             catch (Exception ex) { 
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 检查通过
+        /// 返回当前用户
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseReponse> CheckStatus()
+        {
+            try
+            {
+                User user = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
+                UserInfoResponse userInfo = new UserInfoResponse();
+                userInfo.Id = user.Id;
+                userInfo.UserName = user.UserName!;
+                userInfo.Avatar = user.Avatar;
+                // 查询用户下的角色
+                var roles = await userManager.GetRolesAsync(user);
+                userInfo.Roles = roles;
+                return new ApiResponse(200, "获取当前用户成功", userInfo);
+            }
+            catch (Exception ex) {
                 return new ApiResponse(500, ex.Message);
             }
         }

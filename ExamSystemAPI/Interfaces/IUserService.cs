@@ -9,6 +9,8 @@ namespace ExamSystemAPI.Interfaces
         Task<BaseReponse> RegisterAsync(RegisterRequest request);
         Task<BaseReponse> LoginAsync(string username, string password);
         Task<BaseReponse> LogoutAsync();
+        Task<BaseReponse> GetAllAsync(QueryParametersRequest request);
         Task<BaseReponse> JoinTeamAsync(JoinTeamRequest request);
+        Task<BaseReponse> CheckStatus();
     }
 }

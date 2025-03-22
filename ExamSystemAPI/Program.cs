@@ -1,3 +1,4 @@
+using Aliyun.OSS;
 using ExamSystemAPI.Extensions;
 using ExamSystemAPI.Helper;
 using ExamSystemAPI.Helper.Filter;
@@ -25,7 +26,6 @@ builder.Services.AddEndpointsApiExplorer();
 // 注册 IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
-// builder.Services.AddSwaggerGen();
 // swagger配置 支持传递请求头
 builder.Services.AddSwaggerGen(c =>
 {
@@ -95,6 +95,18 @@ builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
 // 注册托管服务
 builder.Services.AddHostedService<ExamPaperExpirationService>();
 
+
+// 从配置中读取阿里云 OSS 信息
+var ossConfig = builder.Configuration.GetSection("AliyunOSS");
+var endpoint = ossConfig["Endpoint"];
+var accessKeyId = ossConfig["AccessKeyId"];
+var accessKeySecret = ossConfig["AccessKeySecret"];
+
+// 创建并注册 OSS 客户端
+var ossClient = new OssClient(endpoint, accessKeyId, accessKeySecret);
+builder.Services.AddSingleton(ossClient);
+
+
 // 注册全局拦截器
 builder.Services.Configure<MvcOptions>(opt => 
     { 
@@ -107,6 +119,8 @@ builder.Services.AddScoped<ITopicService, TopicService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IPaperService, PaperService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<IOssService, OssService>();
+builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<ClaimHelper>();
 builder.Services.AddScoped<JWTHelper>();
 

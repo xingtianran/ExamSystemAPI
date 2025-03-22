@@ -29,7 +29,7 @@ namespace ExamSystemAPI.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpGet]
         [NotCheckJWTValiadation]
         public Task<BaseReponse> Register([FromQuery]RegisterRequest request) => userService.RegisterAsync(request);
 
@@ -39,7 +39,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpGet]
         [NotCheckJWTValiadation]
         public Task<BaseReponse> Login(string username, string password) => userService.LoginAsync(username, password);
 
@@ -50,6 +50,14 @@ namespace ExamSystemAPI.Controllers
         [HttpDelete]
         public Task<BaseReponse> Logout() => userService.LogoutAsync();
 
+        
+        /// <summary>
+        /// 查询全部用户
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetAllAsync([FromQuery]QueryParametersRequest request) => userService.GetAllAsync(request);
 
         /// <summary>
         /// 加入组
@@ -58,6 +66,13 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpGet]
         public Task<BaseReponse> JoinTeam([FromQuery]JoinTeamRequest request) => userService.JoinTeamAsync(request);
+
+        /// <summary>
+        /// 检查登录状态
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> CheckStatus() => userService.CheckStatus();
 
     }
 }
