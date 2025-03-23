@@ -3,7 +3,7 @@
     /// <summary>
     /// 图片模型
     /// </summary>
-    public class Image { 
+    public class Image {
         public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string OriginalName { get; set; } = string.Empty;

@@ -1,5 +1,6 @@
 ﻿using Aliyun.OSS;
 using ExamSystemAPI.Extensions.Response;
+using ExamSystemAPI.Helper.Filter;
 using ExamSystemAPI.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +12,7 @@ namespace ExamSystemAPI.Controllers
     {
         private readonly IOssService ossService;
 
-        public OssController(IOssService ossService) 
+        public OssController(IOssService ossService)
         {
             this.ossService = ossService;
         }
@@ -22,6 +23,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="file"></param>
         /// <returns></returns>
         [HttpPost]
+        [NotCheckJWTValiadation]
         public Task<BaseReponse> UploadFile(IFormFile file, string origin) => ossService.UploadFileAsync(file, origin);
 
         /// <summary>
@@ -29,7 +31,8 @@ namespace ExamSystemAPI.Controllers
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("{fileName}")]
+        [NotCheckJWTValiadation]
         public async  Task<IActionResult> DownloadFile(string fileName) {
             try
             {

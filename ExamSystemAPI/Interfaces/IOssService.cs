@@ -1,5 +1,4 @@
 ﻿using ExamSystemAPI.Extensions.Response;
-using Microsoft.AspNetCore.Mvc;
 
 namespace ExamSystemAPI.Interfaces
 {

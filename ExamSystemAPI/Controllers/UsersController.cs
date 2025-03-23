@@ -2,6 +2,7 @@
 using ExamSystemAPI.Extensions.Response;
 using ExamSystemAPI.Helper.Filter;
 using ExamSystemAPI.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExamSystemAPI.Controllers
@@ -57,7 +58,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpGet]
-        public Task<BaseReponse> GetAllAsync([FromQuery]QueryParametersRequest request) => userService.GetAllAsync(request);
+        public Task<BaseReponse> GetAllAsync([FromQuery]QueryUsersParametersRequest request) => userService.GetAllAsync(request);
 
         /// <summary>
         /// 加入组
@@ -72,7 +73,42 @@ namespace ExamSystemAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public Task<BaseReponse> CheckStatus() => userService.CheckStatus();
+        public Task<BaseReponse> CheckStatus() => userService.CheckStatusAsync();
+
+        /// <summary>
+        /// 获取角色内容
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetRoles() => userService.GetRolesAsync();
+
+        /// <summary>
+        /// 重置密码
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="newPwd"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = "admin")]
+        public Task<BaseReponse> ResetPwd(long userId, string newPwd) => userService.ResetPwdAsync(userId, newPwd);
+
+        /// <summary>
+        /// 锁定用户
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpDelete("{userId}")]
+        [Authorize(Roles = "admin")]
+        public Task<BaseReponse> LockUser(long userId) => userService.LockUserAsync(userId);
+
+        /// <summary>
+        /// 解锁用户
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpPut("{userId}")]
+        [Authorize(Roles = "admin")]
+        public Task<BaseReponse> UnLockUser(long userId) => userService.UnLockUser(userId);
 
     }
 }

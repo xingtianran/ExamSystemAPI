@@ -181,15 +181,24 @@ namespace ExamSystemAPI.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BaseReponse> GetAllAsync(QueryParametersRequest request) {
+        public async Task<BaseReponse> GetAllAsync(QueryUsersParametersRequest request) {
             try
             {
                 int page = request.Page;
                 int size = request.Size;
+                string? role = request.Role;
+                string? userName = request.UserName;
                 int startIndex = (page - 1) * size;
-                var baseSet = userManager.Users;
-                var data = await baseSet.Skip(startIndex).Take(size).ToListAsync();
-                var count = await baseSet.CountAsync();
+                IEnumerable<User> baseSet = await userManager.Users.ToListAsync();
+                // 搜索条件
+                if (!string.IsNullOrEmpty(role)) {
+                    baseSet = await userManager.GetUsersInRoleAsync(role);
+                }
+                if (!string.IsNullOrEmpty(userName)) {
+                    baseSet = baseSet.Where(b => b.UserName!.Contains(userName));
+                }
+                var data = baseSet.Skip(startIndex).Take(size);
+                var count = baseSet.Count();
                 var totalPage = (int)Math.Ceiling(count * 1.0 / size);
                 List<UserInfoResponse> response = new List<UserInfoResponse>();
                 foreach (var user in data)
@@ -198,6 +207,8 @@ namespace ExamSystemAPI.Services
                     userInfo.Id = user.Id;
                     userInfo.UserName = user.UserName!;
                     userInfo.Avatar = user.Avatar;
+                    // 是否锁定
+                    userInfo.IsLock = user.LockoutEnd == null ? "1" : "0";
                     // 查询用户下的角色
                     var roles = await userManager.GetRolesAsync(user);
                     userInfo.Roles = roles;
@@ -246,7 +257,7 @@ namespace ExamSystemAPI.Services
         /// 返回当前用户
         /// </summary>
         /// <returns></returns>
-        public async Task<BaseReponse> CheckStatus()
+        public async Task<BaseReponse> CheckStatusAsync()
         {
             try
             {
@@ -261,6 +272,102 @@ namespace ExamSystemAPI.Services
                 return new ApiResponse(200, "获取当前用户成功", userInfo);
             }
             catch (Exception ex) {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 获取角色内容
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetRolesAsync()
+        {
+            try
+            {
+                IEnumerable<Role> roles = await roleManager.Roles.ToListAsync();
+                return new ApiResponse(200, "获取全部角色成功", roles);
+            }
+            catch (Exception ex) {
+
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 重置密码
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="newPwd"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> ResetPwdAsync(long userId, string newPwd)
+        {
+            try
+            {
+                if (userId == 0) return new ApiResponse(400, "用户编号不能为空");
+                if (string.IsNullOrEmpty(newPwd)) return new ApiResponse(400, "新密码不能为空");
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                    return new ApiResponse(400, "用户不存在");
+                var token = await userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await userManager.ResetPasswordAsync(user, token, newPwd);
+                // 重置完成之后，让用户JWTVersion加一
+                user.JWTVersion++;
+                var updateResult = await userManager.UpdateAsync(user);
+                return result.Succeeded && updateResult.Succeeded ? new ApiResponse(200, "密码重置成功") : new ApiResponse(500, "密码重置失败");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 锁定用户
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> LockUserAsync(long userId)
+        {
+            try
+            {
+                if (userId == 0) return new ApiResponse(400, "用户编号不能为空");
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                    return new ApiResponse(400, "用户不存在");
+                // JWTVesion加一，让用户持有的失效
+                user.JWTVersion++;
+                // 设置一个足够大的时间
+                user.LockoutEnd = DateTimeOffset.MaxValue;
+                var result = await userManager.UpdateAsync(user);
+                return result.Succeeded ? new ApiResponse(200, "锁定成功") : new ApiResponse(500, "锁定失败");
+            }
+            catch (Exception ex) { 
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 解锁用户
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> UnLockUser(long userId)
+        {
+            try
+            {
+                if (userId == 0) return new ApiResponse(400, "用户编号不能为空");
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                    return new ApiResponse(400, "用户不存在");
+                // 锁定时间置null
+                user.LockoutEnd = null;
+                // 重置登录失败次数
+                user.AccessFailedCount = 0;
+                var result = await userManager.UpdateAsync(user);
+                return result.Succeeded ? new ApiResponse(200, "解锁成功") : new ApiResponse(500, "解锁失败");
+            }
+            catch (Exception ex)
+            {
                 return new ApiResponse(500, ex.Message);
             }
         }
