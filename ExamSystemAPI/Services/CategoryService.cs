@@ -61,7 +61,7 @@ namespace ExamSystemAPI.Services
                 int page = request.Page;
                 int size = request.Size;
                 int startIndex = (page - 1) * size;
-                var baseSet = ctx.Categories.Where(c => c.Parent == null);
+                var baseSet = ctx.Categories.Include(c => c.User).Where(c => c.Parent == null);
                 var data = await baseSet.Skip(startIndex).Take(size).ToListAsync();
                 // 树型格式取出全部元素
                 foreach (var item in data) {
@@ -128,8 +128,8 @@ namespace ExamSystemAPI.Services
                     return new ApiResponse(400, "分类名称不能为空");
                 Category categoryFromDB = await ctx.Categories.FirstAsync(c => c.Id == category.Id);
                 categoryFromDB.Name = category.Name;
-                categoryFromDB.State = category.State;
-                categoryFromDB.ParentId = category.ParentId;
+                // categoryFromDB.State = category.State;
+                // categoryFromDB.ParentId = category.ParentId;
                 categoryFromDB.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
                 categoryFromDB.UpdateTime = DateTime.Now;
                 ctx.Categories.Update(categoryFromDB);
@@ -137,6 +137,59 @@ namespace ExamSystemAPI.Services
             }
             catch (Exception ex)
             {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+
+        /// <summary>
+        /// 更改状态
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> UpdateStateAsync(long id)
+        {
+            try
+            {
+                if (id == 0) return new ApiResponse(400, "类目编号不能为空");
+                Category category = await ctx.Categories.SingleAsync(c => c.Id == id);
+                // 如果是禁用的话
+                if (category.State == "1") {
+                    // 查询它之下的子类目有没有禁用，子类目禁用了，才能禁用
+                    IEnumerable<Category> children = await ctx.Categories.Where(c => c.ParentId == id).ToListAsync();
+                    foreach (var child in children)
+                    {
+                        if (child.State == "1")
+                            return new ApiResponse(400, "该类目下还有使用的子类目");
+                    }
+                }
+                category.State = category.State == "1" ? "0" : "1";
+                ctx.Categories.Update(category);
+                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "更改成功") : new ApiResponse(500, "更改失败");
+            }
+            catch (Exception ex) {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 删除类目
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> DeleteAsync(long id) {
+            try
+            {
+                if (id == 0) return new ApiResponse(400, "类目编号不能为空");
+                Category category = await ctx.Categories.SingleAsync(c => c.Id == id);
+                // 如果它下面还有子类目，就不能删除
+                List<Category> children = await ctx.Categories.Where(c => c.ParentId == id).ToListAsync();
+                if (children.Count > 0)
+                    return new ApiResponse(400, "该类目之下还有子类目");
+                ctx.Categories.Remove(category);
+                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "删除成功") : new ApiResponse(500, "删除失败");
+            }
+            catch (Exception ex) {
                 return new ApiResponse(500, ex.Message);
             }
         }

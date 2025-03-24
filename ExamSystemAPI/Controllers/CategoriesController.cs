@@ -49,5 +49,24 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpPut]
         public Task<BaseReponse> Update([FromBody] Category category) => categoryService.UpdateAsync(category);
+
+
+        /// <summary>
+        /// 更改状态
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPut("{id}")]
+        public Task<BaseReponse> UpdateState(long id) => categoryService.UpdateStateAsync(id);
+
+
+        /// <summary>
+        /// 删除类目
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+
+        [HttpDelete("{id}")]
+        public Task<BaseReponse> Delete(long id) => categoryService.DeleteAsync(id);
     }
 }

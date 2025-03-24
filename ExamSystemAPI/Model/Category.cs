@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace ExamSystemAPI.Model
+﻿namespace ExamSystemAPI.Model
 {
     /// <summary>
     /// 类目模型

@@ -10,5 +10,7 @@ namespace ExamSystemAPI.Interfaces
         Task<BaseReponse> GetSigleAsync(long id);
         Task<BaseReponse> GetAllAsync(QueryParametersRequest request);
         Task<BaseReponse> UpdateAsync(Category category);
+        Task<BaseReponse> UpdateStateAsync(long id);
+        Task<BaseReponse> DeleteAsync(long id);
     }
 }

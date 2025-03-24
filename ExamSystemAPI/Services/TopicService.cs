@@ -86,8 +86,14 @@ namespace ExamSystemAPI.Services
                 int page = request.Page;
                 int size = request.Size;
                 int startIndex = (page - 1) * size;
-                var baseSet = ctx.Topics;
+                var baseSet = ctx.Topics.Include(t => t.Category).Include(t => t.User);
                 var data = await baseSet.Skip(startIndex).Take(size).ToListAsync();
+                // 防止循环依赖
+                for (int i = 0; i < data.Count; i++)
+                {
+                    data[i].Category.Parent = null;
+                    data[i].Category.Children = new List<Category>();
+                }
                 var count = await baseSet.CountAsync();
                 var totalPage = (int)Math.Ceiling(count * 1.0 / size);
                 return new PageInfoResponse<Topic>(200, "获取成功", page, size, totalPage, data);
@@ -171,6 +177,25 @@ namespace ExamSystemAPI.Services
             }
             catch (Exception ex) {
                 return Task.FromResult(new ApiResponse(500, ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// 更改状态
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> UpdateStateAsync(long id) {
+            try
+            {
+                if (id == 0) return new ApiResponse(400, "题目编号不能为空");
+                Topic topic = await ctx.Topics.SingleAsync(t => t.Id == id);
+                topic.State = topic.State == "1" ? "0" : "1";
+                ctx.Topics.Update(topic);
+                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "更改成功") : new ApiResponse(500, "更改失败");
+            }
+            catch (Exception ex) {
+                return new ApiResponse(500, ex.Message);
             }
         }
     }

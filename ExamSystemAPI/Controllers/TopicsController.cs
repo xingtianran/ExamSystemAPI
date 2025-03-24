@@ -70,5 +70,13 @@ namespace ExamSystemAPI.Controllers
         [HttpGet]
         public Task<ApiResponse> AddTopic2Paper([FromQuery]AddTopic2PaperRequest request) => topicService.AddTopic2PaperAsync(request);
 
+        /// <summary>
+        /// 更改状态
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPut("{id}")]
+        public Task<BaseReponse> UpdateState(long id) => topicService.UpdateStateAsync(id);
+
     }
 }
