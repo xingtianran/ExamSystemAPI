@@ -40,6 +40,9 @@ namespace ExamSystemAPI.Services
                 if (string.IsNullOrEmpty(topic.Answer)) return new ApiResponse(400, "题目答案不能为空");
                 if (string.IsNullOrEmpty(topic.Type)) return new ApiResponse(400, "题目类型不能为空");
                 if (topic.CategoryId == 0) return new ApiResponse(400, "类目编号不能为空");
+                // 查询出类目
+                Category category = await ctx.Categories.SingleAsync(c => c.Id == topic.CategoryId);
+                topic.Category = category;
                 // 填充数据
                 topic.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
                 topic.CreateTime = DateTime.Now;
@@ -79,14 +82,23 @@ namespace ExamSystemAPI.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BaseReponse> GetAllAsync(QueryParametersRequest request)
+        public async Task<BaseReponse> GetAllAsync(QueryTopicsParametersRequest request)
         {
             try
             {
                 int page = request.Page;
                 int size = request.Size;
+                string? title = request.Title;
+                string? type = request.Type;
+                long categoryId = request.CategoryId;
                 int startIndex = (page - 1) * size;
-                var baseSet = ctx.Topics.Include(t => t.Category).Include(t => t.User);
+                IQueryable<Topic> baseSet = ctx.Topics.Include(t => t.Category).Include(t => t.User);
+                if (!string.IsNullOrEmpty(title))
+                    baseSet = baseSet.Where(t => t.Title.Contains(title));
+                if (!string.IsNullOrEmpty(type))
+                    baseSet = baseSet.Where(t => t.Type == type);
+                if (categoryId != 0)
+                    baseSet = baseSet.Where(t => t.Category.Id == categoryId);
                 var data = await baseSet.Skip(startIndex).Take(size).ToListAsync();
                 // 防止循环依赖
                 for (int i = 0; i < data.Count; i++)

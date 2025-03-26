@@ -42,7 +42,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpGet]
-        public Task<BaseReponse> GetAll([FromQuery]QueryParametersRequest request) => topicService.GetAllAsync(request);
+        public Task<BaseReponse> GetAll([FromQuery] QueryTopicsParametersRequest request) => topicService.GetAllAsync(request);
 
 
         /// <summary>

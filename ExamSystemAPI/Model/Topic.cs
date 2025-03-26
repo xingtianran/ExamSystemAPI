@@ -16,6 +16,12 @@
         public User User { get; set; } = new User();
         public List<Paper> Papers { get; set; } = new List<Paper>();
         public string State { get; set; } = "1";
+        public string Column1 { get; set; } = string.Empty;
+        public string Column2 { get; set; } = string.Empty;
+        public string Column3 { get; set; } = string.Empty;
+        public string Column4 { get; set; } = string.Empty;
+        public string Column5 { get; set; } = string.Empty;
+        public string Column6 { get; set; } = string.Empty;
         public DateTime TempTime { get; set; }
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }

@@ -12,5 +12,6 @@ namespace ExamSystemAPI.Interfaces
         Task<BaseReponse> UpdateAsync(Category category);
         Task<BaseReponse> UpdateStateAsync(long id);
         Task<BaseReponse> DeleteAsync(long id);
+        Task<BaseReponse> GetListAsync();
     }
 }

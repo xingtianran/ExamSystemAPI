@@ -68,5 +68,12 @@ namespace ExamSystemAPI.Controllers
 
         [HttpDelete("{id}")]
         public Task<BaseReponse> Delete(long id) => categoryService.DeleteAsync(id);
+
+        /// <summary>
+        /// 获取全部类目（不分页）
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetList() => categoryService.GetListAsync();
     }
 }

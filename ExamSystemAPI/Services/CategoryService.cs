@@ -95,6 +95,22 @@ namespace ExamSystemAPI.Services
         }
 
         /// <summary>
+        /// 遍历寻找每一结点（状态正常的）
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private async Task SearchNormalChilrenAsync(long id)
+        {
+            var parent = await ctx.Categories.Where(c => c.State != "0").Include(c => c.Children).FirstAsync(c => c.Id == id);
+            foreach (var child in parent.Children)
+            {
+                // 父结点都置空，防止循环引用
+                child.Parent = null;
+                await SearchChilrenAsync(child.Id);
+            }
+        }
+
+        /// <summary>
         /// 获取分类
         /// </summary>
         /// <param name="id"></param>
@@ -188,6 +204,25 @@ namespace ExamSystemAPI.Services
                     return new ApiResponse(400, "该类目之下还有子类目");
                 ctx.Categories.Remove(category);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "删除成功") : new ApiResponse(500, "删除失败");
+            }
+            catch (Exception ex) {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 获取全部类目（不分页）
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetListAsync() {
+            try
+            {
+                var data = await ctx.Categories.Where(c => c.Parent == null && c.State != "0").ToListAsync();
+                foreach (var item in data)
+                {
+                    await SearchNormalChilrenAsync(item.Id);
+                }
+                return new ApiResponse(200, "获取成功", data);
             }
             catch (Exception ex) {
                 return new ApiResponse(500, ex.Message);
