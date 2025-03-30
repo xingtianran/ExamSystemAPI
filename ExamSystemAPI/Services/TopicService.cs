@@ -157,6 +157,12 @@ namespace ExamSystemAPI.Services
                 topicFromDB.CategoryId = topic.CategoryId;
                 topicFromDB.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
                 topicFromDB.Score = topic.Score;
+                topicFromDB.Column1 = topic.Column1;
+                topicFromDB.Column2 = topic.Column2;
+                topicFromDB.Column3 = topic.Column3;
+                topicFromDB.Column4 = topic.Column4;
+                topicFromDB.Column5 = topic.Column5;
+                topicFromDB.Column6 = topic.Column6;
                 topicFromDB.UpdateTime = DateTime.Now;
                 ctx.Topics.Update(topicFromDB);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "更新成功") : new ApiResponse(500, "更新失败");

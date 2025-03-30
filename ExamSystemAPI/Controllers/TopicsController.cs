@@ -33,8 +33,8 @@ namespace ExamSystemAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet]
-        public Task<BaseReponse> GetSigle(long id) => topicService.GetSingleAsync(id);
+        [HttpGet("{id}")]
+        public Task<BaseReponse> GetSingle(long id) => topicService.GetSingleAsync(id);
 
         /// <summary>
         /// 获取题目列表
@@ -50,7 +50,7 @@ namespace ExamSystemAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public Task<BaseReponse> Delete(long id) => topicService.DeleteAsync(id);
 
         /// <summary>
