@@ -95,7 +95,6 @@ namespace ExamSystemAPI.Services
                     PaperTopic paperTopic = new PaperTopic();
                     paperTopic.PaperId = paper.Id;
                     paperTopic.TopicId = topic.Id;
-                    paperTopic.CreateTime = topic.TempTime;
                     paperTopicList.Add(paperTopic);
                 }
                 // 保存到关联表
@@ -135,14 +134,20 @@ namespace ExamSystemAPI.Services
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<BaseReponse> GetAllAsync(QueryParametersRequest request)
+        public async Task<BaseReponse> GetAllAsync(QueryPapersParametersRequest request)
         {
             try
             {
                 int page = request.Page;
                 int size = request.Size;
+                string? title = request.Title;
+                long categoryId = request.CategoryId;
                 int startIndex = (page - 1) * size;
-                var baseSet = ctx.Papers;
+                IQueryable<Paper> baseSet = ctx.Papers.Include(p => p.Category).Include(p => p.User);
+                if (!string.IsNullOrEmpty(title))
+                    baseSet = baseSet.Where(b => b.Title.Contains(title));
+                if (categoryId != 0)
+                    baseSet = baseSet.Where(b => b.CategoryId == categoryId);
                 var data = await baseSet.Skip(startIndex).Take(size).ToListAsync();
                 var count = await baseSet.CountAsync();
                 var totalPage = (int)Math.Ceiling(count * 1.0 / size);
@@ -223,6 +228,87 @@ namespace ExamSystemAPI.Services
                 paperTeam.Deadline = request.Deadline;
                 await ctx.PaperTeams.AddAsync(paperTeam);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "发布成功") : new ApiResponse(500, "发布失败");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 更新状态
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> UpdateStateAsync(long id)
+        {
+            try
+            {
+                if (id == 0) return new ApiResponse(400, "试卷编号不能为空");
+                Paper paper = await ctx.Papers.SingleAsync(t => t.Id == id);
+                paper.State = paper.State == "1" ? "0" : "1";
+                ctx.Papers.Update(paper);
+                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "更改成功") : new ApiResponse(500, "更改失败");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 增加题目
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> AddNewAsync(AddPaperRequest request)
+        {
+            try
+            {
+                string title = request.Title;
+                long categoryId = request.CategoryId;
+                List<TopicsSet> topicsSets = request.TopicsSets;
+                if (string.IsNullOrEmpty(title)) return new ApiResponse(400, "试卷标题不能为空");
+                if (categoryId == 0) return new ApiResponse(400, "试卷类目不能为空");
+                if (topicsSets.Count == 0) return new ApiResponse(400, "试卷题目不能为空");
+                Paper paper = new Paper();
+                paper.Title = title;
+                Category category = await ctx.Categories.SingleAsync(c => c.Id == categoryId);
+                paper.Category = category;
+                paper.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
+                paper.UpdateTime = DateTime.Now;
+                paper.CreateTime = DateTime.Now;
+                // 计算总分
+                double score = 0;
+                // 添加到试卷表
+                List<PaperTopic> paperTopics = new List<PaperTopic>();
+                foreach (TopicsSet topicsSet in topicsSets)
+                {
+                    long topicIndex = 1;
+                    foreach (Topic topic in topicsSet.Topics)
+                    {
+                        PaperTopic paperTopic = new PaperTopic();
+                        // paperTopic.Paper = paper;
+                        // paperTopic.Topic = topic;
+                        paperTopic.TopicId = topic.Id;
+                        paperTopic.TopicSetIndex = topicsSet.Id;
+                        paperTopic.TopicIndex = topicIndex;
+                        score += topic.Score;
+                        topicIndex++;
+                        paperTopics.Add(paperTopic);
+                    }
+                }
+                paper.Score = score;
+                // 添加到试卷表
+                await ctx.Papers.AddAsync(paper);
+                await ctx.SaveChangesAsync();
+                // 添加到关系表
+                // await ctx.PaperTopics.AddRangeAsync(paperTopics);
+                long paperId = paper.Id;
+                foreach (PaperTopic item in paperTopics) {
+                    await ctx.Database.ExecuteSqlInterpolatedAsync(@$"insert into T_Papers_Topics(PaperId, TopicId, TopicIndex, TopicSetIndex) values({paperId}, {item.TopicId}, {item.TopicIndex}, {item.TopicSetIndex})");
+                }
+                return new ApiResponse(200, "添加成功");
             }
             catch (Exception ex)
             {

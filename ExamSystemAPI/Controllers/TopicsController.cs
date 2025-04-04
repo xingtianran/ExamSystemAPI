@@ -78,5 +78,13 @@ namespace ExamSystemAPI.Controllers
         [HttpPut("{id}")]
         public Task<BaseReponse> UpdateState(long id) => topicService.UpdateStateAsync(id);
 
+        /// <summary>
+        /// 获取部分题目详情
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetPart([FromQuery]string ids) => topicService.GetPartAsync(ids);
+
     }
 }

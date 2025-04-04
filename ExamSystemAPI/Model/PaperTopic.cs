@@ -6,6 +6,7 @@
         public Paper Paper { get; set; } = new Paper();
         public long TopicId { get; set; }
         public Topic Topic { get; set; } = new Topic();
-        public DateTime CreateTime { get; set; }
+        public long TopicSetIndex { get; set; }
+        public long TopicIndex { get; set; }
     }
 }

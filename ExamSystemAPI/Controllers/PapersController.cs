@@ -17,15 +17,14 @@ namespace ExamSystemAPI.Controllers
         public PapersController(IPaperService paperService) { 
             this.paperService = paperService;
         }
-
+       
         /// <summary>
-        /// 添加试卷
+        /// 增加试卷
         /// </summary>
-        /// <param name="paper"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost]
-        public Task<BaseReponse> AddNew([FromBody] Paper paper, string sign) => paperService.AddNewAsync(paper, sign);
-
+        public Task<BaseReponse> AddNew([FromBody] AddPaperRequest request) => paperService.AddNewAsync(request);
 
         /// <summary>
         /// 获取试卷
@@ -41,7 +40,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpGet]
-        public Task<BaseReponse> GetAll([FromQuery] QueryParametersRequest request) => paperService.GetAllAsync(request);
+        public Task<BaseReponse> GetAll([FromQuery] QueryPapersParametersRequest request) => paperService.GetAllAsync(request);
 
 
         /// <summary>
@@ -49,7 +48,7 @@ namespace ExamSystemAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public Task<BaseReponse> Delete(long id) => paperService.DeleteAsync(id);
 
         /// <summary>
@@ -68,5 +67,14 @@ namespace ExamSystemAPI.Controllers
 
         [HttpPost]
         public Task<BaseReponse> Publish([FromQuery]PublishPaperRequest request) => paperService.PublishAsync(request);
+
+
+        /// <summary>
+        /// 更新状态
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPut("{id}")]
+        public Task<BaseReponse> UpdateState(long id) => paperService.UpdateStateAsync(id);
     }
 }

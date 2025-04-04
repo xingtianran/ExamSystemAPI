@@ -13,6 +13,6 @@ namespace ExamSystemAPI.Interfaces
         Task<BaseReponse> UpdateAsync(Topic topic);
         Task<ApiResponse> AddTopic2PaperAsync(AddTopic2PaperRequest request);
         Task<BaseReponse> UpdateStateAsync(long id);
-
+        Task<BaseReponse> GetPartAsync(string ids);
     }
 }

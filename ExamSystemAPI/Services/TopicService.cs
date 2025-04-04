@@ -154,6 +154,7 @@ namespace ExamSystemAPI.Services
                 topicFromDB.Title = topic.Title;
                 topicFromDB.Content = topic.Content;
                 topicFromDB.Answer = topic.Answer;
+                topicFromDB.Type = topic.Type;
                 topicFromDB.CategoryId = topic.CategoryId;
                 topicFromDB.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
                 topicFromDB.Score = topic.Score;
@@ -211,6 +212,26 @@ namespace ExamSystemAPI.Services
                 topic.State = topic.State == "1" ? "0" : "1";
                 ctx.Topics.Update(topic);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "更改成功") : new ApiResponse(500, "更改失败");
+            }
+            catch (Exception ex) {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+
+        /// <summary>
+        /// 获取部分题目详情，题目编号用/号分隔
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetPartAsync(string ids)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(ids)) return new ApiResponse(400, "题目编号不能为空");
+                long[] idList = ids.Split("/").Select(i => long.Parse(i)).ToArray();
+                List<Topic> topics = await ctx.Topics.Where(t => idList.Contains(t.Id)).ToListAsync();
+                return topics.Count > 0 ? new ApiResponse(200, "获取成功", topics) : new ApiResponse(500, "获取失败");
             }
             catch (Exception ex) {
                 return new ApiResponse(500, ex.Message);
