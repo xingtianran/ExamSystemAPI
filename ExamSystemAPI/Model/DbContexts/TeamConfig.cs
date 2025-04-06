@@ -11,6 +11,7 @@ namespace ExamSystemAPI.Model.DbContexts
             builder.Property(t => t.Name).HasMaxLength(32);
             builder.Property(t => t.Password).HasMaxLength(64);
             builder.Property(t => t.State).HasMaxLength(1);
+            builder.HasOne(t => t.CreateUser).WithMany().OnDelete(DeleteBehavior.NoAction);
             builder.HasMany(t => t.Users).WithMany(u => u.Teams).UsingEntity("T_Teams_Users");
         }
     }

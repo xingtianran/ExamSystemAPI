@@ -5,9 +5,9 @@ using ExamSystemAPI.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ExamSystemAPI.Controllers
+namespace ExamSystemAPI.Controllers.Admin
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/admin/[controller]/[action]")]
     [ApiController]
     [Authorize(Roles = "admin,teacher")]
     public class CategoriesController : ControllerBase

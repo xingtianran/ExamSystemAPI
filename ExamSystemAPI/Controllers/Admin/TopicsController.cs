@@ -5,9 +5,9 @@ using ExamSystemAPI.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ExamSystemAPI.Controllers
+namespace ExamSystemAPI.Controllers.Admin
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/admin/[controller]/[action]")]
     [ApiController]
     [Authorize(Roles = "admin,teacher")]
     public class TopicsController : ControllerBase
@@ -59,7 +59,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="topic"></param>
         /// <returns></returns>
         [HttpPut]
-        public Task<BaseReponse> Update([FromBody]Topic topic) => topicService.UpdateAsync(topic);
+        public Task<BaseReponse> Update([FromBody] Topic topic) => topicService.UpdateAsync(topic);
 
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpGet]
-        public Task<ApiResponse> AddTopic2Paper([FromQuery]AddTopic2PaperRequest request) => topicService.AddTopic2PaperAsync(request);
+        public Task<ApiResponse> AddTopic2Paper([FromQuery] AddTopic2PaperRequest request) => topicService.AddTopic2PaperAsync(request);
 
         /// <summary>
         /// 更改状态
@@ -84,7 +84,22 @@ namespace ExamSystemAPI.Controllers
         /// <param name="ids"></param>
         /// <returns></returns>
         [HttpGet]
-        public Task<BaseReponse> GetPart([FromQuery]string ids) => topicService.GetPartAsync(ids);
+        public Task<BaseReponse> GetPart([FromQuery] string ids) => topicService.GetPartAsync(ids);
+
+        /// <summary>
+        /// 获取全部题目
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetCount() => topicService.GetCountAsync();
+
+        /// <summary>
+        /// 获取最新题目
+        /// </summary>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        [HttpGet("{size}")]
+        public Task<BaseReponse> GetNew(int size) => topicService.GetNewAsync(size);
 
     }
 }

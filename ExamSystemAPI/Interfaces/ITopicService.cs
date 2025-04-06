@@ -14,5 +14,7 @@ namespace ExamSystemAPI.Interfaces
         Task<ApiResponse> AddTopic2PaperAsync(AddTopic2PaperRequest request);
         Task<BaseReponse> UpdateStateAsync(long id);
         Task<BaseReponse> GetPartAsync(string ids);
+        Task<BaseReponse> GetCountAsync();
+        Task<BaseReponse> GetNewAsync(int size);
     }
 }

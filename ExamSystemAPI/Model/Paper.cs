@@ -13,6 +13,8 @@
         public List<Topic> Topics { get; set; } = new List<Topic>();
         public List<Team> Teams { get; set; } = new List<Team>();
         public string State { get; set; } = "1";
+        public long TempId { get; set; }
+        public DateTime TempTime { get; set; }
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }
     }

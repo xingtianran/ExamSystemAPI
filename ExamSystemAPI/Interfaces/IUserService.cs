@@ -16,5 +16,8 @@ namespace ExamSystemAPI.Interfaces
         Task<BaseReponse> ResetPwdAsync(long userId, string newPwd);
         Task<BaseReponse> LockUserAsync(long userId);
         Task<BaseReponse> UnLockUser(long userId);
+        Task<BaseReponse> GetCountAsync();
+        Task<BaseReponse> GetMyExam();
+        Task<BaseReponse> GetExamDetail(long paperId, long teamId);
     }
 }

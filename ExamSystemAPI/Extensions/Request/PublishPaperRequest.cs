@@ -4,6 +4,6 @@
     {
         public long PaperId { get; set; }
         public long TeamId { get; set; }
-        public DateTime Deadline { get; set; }
+        public long Deadline { get; set; }
     }
 }

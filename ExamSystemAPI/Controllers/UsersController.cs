@@ -32,7 +32,7 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpGet]
         [NotCheckJWTValiadation]
-        public Task<BaseReponse> Register([FromQuery]RegisterRequest request) => userService.RegisterAsync(request);
+        public Task<BaseReponse> Register([FromQuery] RegisterRequest request) => userService.RegisterAsync(request);
 
         /// <summary>
         /// 登录
@@ -51,14 +51,14 @@ namespace ExamSystemAPI.Controllers
         [HttpDelete]
         public Task<BaseReponse> Logout() => userService.LogoutAsync();
 
-        
+
         /// <summary>
         /// 查询全部用户
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpGet]
-        public Task<BaseReponse> GetAllAsync([FromQuery]QueryUsersParametersRequest request) => userService.GetAllAsync(request);
+        public Task<BaseReponse> GetAllAsync([FromQuery] QueryUsersParametersRequest request) => userService.GetAllAsync(request);
 
         /// <summary>
         /// 加入组
@@ -66,7 +66,7 @@ namespace ExamSystemAPI.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpGet]
-        public Task<BaseReponse> JoinTeam([FromQuery]JoinTeamRequest request) => userService.JoinTeamAsync(request);
+        public Task<BaseReponse> JoinTeam([FromQuery] JoinTeamRequest request) => userService.JoinTeamAsync(request);
 
         /// <summary>
         /// 检查登录状态
@@ -110,5 +110,27 @@ namespace ExamSystemAPI.Controllers
         [Authorize(Roles = "admin")]
         public Task<BaseReponse> UnLockUser(long userId) => userService.UnLockUser(userId);
 
+        /// <summary>
+        /// 获取全部用户
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetCount() => userService.GetCountAsync();
+
+        /// <summary>
+        /// 获取我的考试
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetMyExam() => userService.GetMyExam();
+
+        /// <summary>
+        /// 获取考试详情信息
+        /// </summary>
+        /// <param name="paperId"></param>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        [HttpGet("{paperId}/{teamId}")]
+        public Task<BaseReponse> GetExamDetail(long paperId, long teamId) => userService.GetExamDetail(paperId, teamId);
     }
 }

@@ -6,6 +6,7 @@ using ExamSystemAPI.Model;
 using ExamSystemAPI.Model.DbContexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 using System.Security.Claims;
 
 namespace ExamSystemAPI.Services
@@ -232,20 +233,25 @@ namespace ExamSystemAPI.Services
             try
             {
                 if (request.TeamId == 0) return new ApiResponse(400, "组编号不能为空");
-                if (request.UserId == 0) return new ApiResponse(400, "用户编号不能为空");
-                if (string.IsNullOrEmpty(request.Password)) return new ApiResponse(400, "密码不能为空");
+                // if (request.UserId == 0) return new ApiResponse(400, "用户编号不能为空");
+                User user = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
+                //if (string.IsNullOrEmpty(request.Password)) return new ApiResponse(400, "密码不能为空");
                 long teamId = request.TeamId;
-                long userId = request.UserId;
                 string password = request.Password;
                 Team team = await ctx.Teams.SingleAsync(t => t.Id == teamId);
-                if (team.Password != password)
-                    return new ApiResponse(400, "密码不正确");
-                User user = await ctx.Users.SingleAsync(u => u.Id == userId);
-                team.Users.Add(user);
-                user.Teams.Add(team);
-                await ctx.Users.AddAsync(user);
-                await ctx.Teams.AddAsync(team);
-                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "加入成功") : new ApiResponse(500, "加入失败");
+                //if (team.Password != password)
+                //    return new ApiResponse(400, "密码不正确");
+                //team.Users.Add(user);
+                //user.Teams.Add(team);
+                //await ctx.Users.AddAsync(user);
+                //await ctx.Teams.AddAsync(team);
+
+                // 更新组人数
+                team.Count++;
+                ctx.Teams.Update(team);
+
+                int count = await ctx.Database.ExecuteSqlInterpolatedAsync($@"insert into T_Teams_Users(TeamsId, UsersId) values({teamId}, {user.Id})");
+                return count > 0 ? new ApiResponse(200, "加入成功") : new ApiResponse(500, "加入失败");
             }
             catch (Exception ex) { 
                 return new ApiResponse(500, ex.Message);
@@ -368,6 +374,116 @@ namespace ExamSystemAPI.Services
             }
             catch (Exception ex)
             {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 获取用户总数
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetCountAsync()
+        {
+            try
+            {
+                long count = await ctx.Users.LongCountAsync();
+                return new ApiResponse(200, "获取总数成功", count);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 获取我的考试
+        /// 根据用户获取群组，再根据群组获取发布的试卷
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetMyExam()
+        {
+            try
+            {
+                // 获取用户
+                User user = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
+                // 获取组
+                List<Team> teams = await ctx.Teams.Where(t => t.Users.Contains(user)).ToListAsync();
+                // 根据组获取试卷
+                List<Paper> papers = new List<Paper>();
+
+                DbConnection conn = ctx.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    await conn.OpenAsync();
+                }
+                foreach (var team in teams)
+                {
+                    List<Paper> list = await ctx.Papers.Include(p => p.User).Include(p => p.Category).Where(p => p.Teams.Contains(team)).ToListAsync();
+                    // 通过paperId和TeamId获取dealLine结束时间
+                    foreach (var paper in list) {
+                        PaperTeam paperTeam = new PaperTeam();
+                        using (var cmd = conn.CreateCommand())
+                        {
+                            cmd.CommandText = $"select State, Deadline from T_Papers_Teams where PaperId = {paper.Id} and TeamId = {team.Id}";
+                            using (var reader = await cmd.ExecuteReaderAsync())
+                            {
+                                while (await reader.ReadAsync())
+                                {
+                                    paperTeam.State = reader.GetString(0);
+                                    paperTeam.Deadline = reader.GetDateTime(1);
+                                }
+                            }
+                        }
+                        // 临时群组ID
+                        paper.TempId = team.Id;
+                        paper.State = paperTeam.State;
+                        paper.TempTime = paperTeam.Deadline;
+                    }
+                    papers.AddRange(list);
+                }
+                // 将state为0的全部剔除
+                papers = papers.Where(p => p.State != "0").ToList();
+                return new ApiResponse(200, "获取成功", papers);
+            }
+            catch (Exception ex) {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 获取单个考试信息详情
+        /// </summary>
+        /// <param name="paperId"></param>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetExamDetail(long paperId, long teamId) {
+            try
+            {
+                DbConnection conn = ctx.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    await conn.OpenAsync();
+                }
+                PaperTeam paperTeam = new PaperTeam();
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"select Deadline from T_Papers_Teams where PaperId = {paperId} and TeamId = {teamId}";
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            paperTeam.Deadline = reader.GetDateTime(0);
+                        }
+                    }
+                }
+                Paper paper = await ctx.Papers.Include(p => p.Topics).SingleAsync(p => p.Id == paperId);
+                foreach (var topic in paper.Topics) {
+                    topic.Papers = new List<Paper>();
+                }
+                paper.TempTime = paperTeam.Deadline;
+                return paper != null ? new ApiResponse(200, "获取成功", paper) : new ApiResponse(500, "获取失败");
+            }
+            catch (Exception ex) { 
                 return new ApiResponse(500, ex.Message);
             }
         }

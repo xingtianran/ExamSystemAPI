@@ -237,5 +237,44 @@ namespace ExamSystemAPI.Services
                 return new ApiResponse(500, ex.Message);
             }
         }
+
+        /// <summary>
+        /// 获取题目总数
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetCountAsync() {
+            try
+            {
+                long count = await ctx.Topics.LongCountAsync();
+                return new ApiResponse(200, "获取总数成功", count);
+            }
+            catch (Exception ex) {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 获取最新题目
+        /// </summary>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetNewAsync(int size)
+        {
+            try
+            {
+                var topics = await ctx.Topics.Include(t => t.Category).Include(c => c.User).Take(size).ToListAsync();
+                // 防止循环依赖
+                for (int i = 0; i < topics.Count; i++)
+                {
+                    topics[i].Category.Parent = null;
+                    topics[i].Category.Children = new List<Category>();
+                }
+                return new ApiResponse(200, "获取成功", topics);
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
     }
 }

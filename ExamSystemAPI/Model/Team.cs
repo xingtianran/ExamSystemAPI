@@ -7,6 +7,7 @@
         public string Password { get; set; } = string.Empty;
         public int Count { get; set; }
         public string State { get; set; } = "1";
+        public User CreateUser { get; set; } = new User();
         public List<Paper> Papers { get; set; } = new List<Paper>();
         public List<User> Users { get; set; } = new List<User>();
         public DateTime CreateTime { get; set; }

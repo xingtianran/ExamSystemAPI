@@ -4,9 +4,9 @@ using ExamSystemAPI.Helper.Filter;
 using ExamSystemAPI.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ExamSystemAPI.Controllers
+namespace ExamSystemAPI.Controllers.Admin
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/admin/[controller]/[action]")]
     [ApiController]
     public class OssController : ControllerBase
     {
@@ -33,7 +33,8 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpGet("{fileName}")]
         [NotCheckJWTValiadation]
-        public async  Task<IActionResult> DownloadFile(string fileName) {
+        public async Task<IActionResult> DownloadFile(string fileName)
+        {
             try
             {
                 var fileStream = await ossService.DownloadFileAsync(fileName);

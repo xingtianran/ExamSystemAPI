@@ -3,9 +3,9 @@ using ExamSystemAPI.Extensions.Response;
 using ExamSystemAPI.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ExamSystemAPI.Controllers
+namespace ExamSystemAPI.Controllers.Admin
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/admin/[controller]/[action]")]
     [ApiController]
     public class ImagesController : ControllerBase
     {
@@ -31,7 +31,7 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         public Task<BaseReponse> UpdateState(long id) => imageService.UpdateStateAsync(id);
-        
+
         /// <summary>
         /// 删除图片
         /// </summary>

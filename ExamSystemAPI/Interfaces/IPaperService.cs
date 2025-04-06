@@ -13,5 +13,6 @@ namespace ExamSystemAPI.Interfaces
         Task<BaseReponse> UpdateAsync(Paper paper);
         Task<BaseReponse> PublishAsync(PublishPaperRequest request);
         Task<BaseReponse> UpdateStateAsync(long id);
+        Task<BaseReponse> GetCountAsync();
     }
 }

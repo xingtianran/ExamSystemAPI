@@ -169,7 +169,7 @@ namespace ExamSystemAPI.Services
             try
             {
                 if (id == 0) return new ApiResponse(400, "试卷编号不能为空");
-                Paper paper = await ctx.Papers.Include(p => p.Topics).SingleAsync(p => p.Id == id);
+                Paper paper = await ctx.Papers.Include(p => p.User).Include(p => p.Category).SingleAsync(p => p.Id == id);
                 return paper != null ? new ApiResponse(200, "获取成功", paper) : new ApiResponse(500, "获取失败");
             }
             catch (Exception ex)
@@ -221,13 +221,19 @@ namespace ExamSystemAPI.Services
             {
                 if (request.PaperId == 0) return new ApiResponse(400, "试卷编号不能为空");
                 if (request.TeamId == 0) return new ApiResponse(400, "组编号不能为空");
-                if (request.Deadline < DateTime.Now) return new ApiResponse(400, "请设置正确时间");
+                // 将时间戳转化为本地时间
+                DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeMilliseconds(request.Deadline);
+                // 将 UTC 时间转换为本地时间
+                DateTimeOffset localDateTimeOffset = dateTimeOffset.ToLocalTime();
+                DateTime examDeadline = localDateTimeOffset.DateTime;
+                if (examDeadline < DateTime.Now) return new ApiResponse(400, "请设置正确时间");
                 PaperTeam paperTeam = new PaperTeam();
                 paperTeam.PaperId = request.PaperId;
                 paperTeam.TeamId = request.TeamId;
-                paperTeam.Deadline = request.Deadline;
-                await ctx.PaperTeams.AddAsync(paperTeam);
-                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "发布成功") : new ApiResponse(500, "发布失败");
+                paperTeam.Deadline = examDeadline;
+                // await ctx.PaperTeams.AddAsync(paperTeam);
+                int count = await ctx.Database.ExecuteSqlInterpolatedAsync($@"insert into T_Papers_Teams(PaperId, TeamId, Deadline, State) values({paperTeam.PaperId}, {paperTeam.TeamId}, {paperTeam.Deadline}, {paperTeam.State})");
+                return count > 0 ? new ApiResponse(200, "发布成功") : new ApiResponse(500, "发布失败");
             }
             catch (Exception ex)
             {
@@ -309,6 +315,24 @@ namespace ExamSystemAPI.Services
                     await ctx.Database.ExecuteSqlInterpolatedAsync(@$"insert into T_Papers_Topics(PaperId, TopicId, TopicIndex, TopicSetIndex) values({paperId}, {item.TopicId}, {item.TopicIndex}, {item.TopicSetIndex})");
                 }
                 return new ApiResponse(200, "添加成功");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+        }
+
+
+        /// <summary>
+        /// 获取试卷总数
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetCountAsync()
+        {
+            try
+            {
+                long count = await ctx.Papers.LongCountAsync();
+                return new ApiResponse(200, "获取总数成功", count);
             }
             catch (Exception ex)
             {
