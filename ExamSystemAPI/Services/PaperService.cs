@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Data.Common;
+using System.Security.Claims;
 using ExamSystemAPI.Extensions.Request;
 using ExamSystemAPI.Extensions.Response;
 using ExamSystemAPI.Interfaces;
@@ -227,12 +228,35 @@ namespace ExamSystemAPI.Services
                 DateTimeOffset localDateTimeOffset = dateTimeOffset.ToLocalTime();
                 DateTime examDeadline = localDateTimeOffset.DateTime;
                 if (examDeadline < DateTime.Now) return new ApiResponse(400, "请设置正确时间");
-                PaperTeam paperTeam = new PaperTeam();
-                paperTeam.PaperId = request.PaperId;
-                paperTeam.TeamId = request.TeamId;
-                paperTeam.Deadline = examDeadline;
-                // await ctx.PaperTeams.AddAsync(paperTeam);
-                int count = await ctx.Database.ExecuteSqlInterpolatedAsync($@"insert into T_Papers_Teams(PaperId, TeamId, Deadline, State) values({paperTeam.PaperId}, {paperTeam.TeamId}, {paperTeam.Deadline}, {paperTeam.State})");
+                PaperTeam paperTeam = null;
+                // 先查询，如果有该试卷编号和群组编号的记录的话，就更新记录值
+                DbConnection conn = ctx.Database.GetDbConnection();
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    await conn.OpenAsync();
+                }
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"select PaperId, TeamId, State from T_Papers_Teams where PaperId = '{request.PaperId}' and TeamId = '{request.TeamId}'";
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            paperTeam = new PaperTeam();
+                            paperTeam.PaperId = reader.GetInt64(0);
+                            paperTeam.TeamId = reader.GetInt64(1);
+                            paperTeam.State = reader.GetString(2);
+                        }
+                    }
+                }
+                int count = 0;
+                if (paperTeam != null)
+                {
+                    count = await ctx.Database.ExecuteSqlInterpolatedAsync($@"update T_Papers_Teams set Deadline = {examDeadline}, State = '1' where PaperId = {paperTeam.PaperId} and TeamId = {paperTeam.TeamId}");
+                }
+                else {
+                    count = await ctx.Database.ExecuteSqlInterpolatedAsync($@"insert into T_Papers_Teams(PaperId, TeamId, Deadline, State) values({request.PaperId}, {request.TeamId}, {examDeadline}, '1')");
+                }
                 return count > 0 ? new ApiResponse(200, "发布成功") : new ApiResponse(500, "发布失败");
             }
             catch (Exception ex)
