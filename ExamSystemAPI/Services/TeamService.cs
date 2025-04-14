@@ -79,7 +79,7 @@ namespace ExamSystemAPI.Services
                 int size = request.Size;
                 string? name = request.Name;
                 int startIndex = (page - 1) * size;
-                IQueryable<Team> baseSet = ctx.Teams.Include(b => b.CreateUser).Include(b => b.Users);
+                IQueryable<Team> baseSet = ctx.Teams.Include(b => b.CreateUser);
                 if (!string.IsNullOrEmpty(name))
                     baseSet = baseSet.Where(b => b.Name.Contains(name));
                 var data = await baseSet.Skip(startIndex).Take(size).ToListAsync();

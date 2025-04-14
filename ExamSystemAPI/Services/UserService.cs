@@ -487,5 +487,45 @@ namespace ExamSystemAPI.Services
                 return new ApiResponse(500, ex.Message);
             }
         }
+
+        /// <summary>
+        /// 批改试卷并记录
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<BaseReponse> MarkPaper(MarkPaperRequest request)
+        {
+            try
+            {
+                if (request.Id == 0) return new ApiResponse(400, "试卷编号不能为空");
+                // 计算分数和答案
+                List<MarkTopic> topics = request.Topics;
+                double score = 0;
+                foreach (var topic in topics)
+                {
+                    Topic topicFromDb = await ctx.Topics.FirstAsync(t => t.Id == topic.Id);
+                    // 数据库中的答案与上传的答案相同
+                    if (topicFromDb.Answer == topic.Answer)
+                    {
+                        score += topicFromDb.Score;
+                    }
+                }
+                Paper paper = await ctx.Papers.FirstAsync(p => p.Id == request.Id);
+                // 插入考试记录表
+                ExamRecord examRecord = new ExamRecord();
+                examRecord.Name = paper.Title;
+                examRecord.Score = score;
+                examRecord.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
+                examRecord.CreateTime = DateTime.Now;
+                examRecord.UpdateTime = DateTime.Now;
+                await ctx.ExamRecords.AddAsync(examRecord);
+                return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "批改成功") : new ApiResponse(500, "批改失败");
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse(500, ex.Message);
+            }
+
+        }
     }
 }

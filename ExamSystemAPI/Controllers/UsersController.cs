@@ -132,5 +132,14 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpGet("{paperId}/{teamId}")]
         public Task<BaseReponse> GetExamDetail(long paperId, long teamId) => userService.GetExamDetail(paperId, teamId);
+
+
+        /// <summary>
+        /// 批改试卷并记录
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Task<BaseReponse> MarkPaper([FromBody]MarkPaperRequest request) => userService.MarkPaper(request);
     }
 }

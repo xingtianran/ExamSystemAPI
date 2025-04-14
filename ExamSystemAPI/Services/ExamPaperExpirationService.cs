@@ -63,7 +63,7 @@ namespace ExamSystemAPI.Services
                     await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
                 }
             }
-            catch (Exception ex) {
+            catch (Exception) {
                 throw;
             }
         }
