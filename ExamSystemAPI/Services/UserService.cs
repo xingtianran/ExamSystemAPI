@@ -497,17 +497,54 @@ namespace ExamSystemAPI.Services
         {
             try
             {
+                var comparator = new SemanticComparator();
                 if (request.Id == 0) return new ApiResponse(400, "试卷编号不能为空");
+                User currentUser = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!; 
                 // 计算分数和答案
                 List<MarkTopic> topics = request.Topics;
+                // 错题记录
+                List<ErrorRecord> errorList = new List<ErrorRecord>();
                 double score = 0;
                 foreach (var topic in topics)
                 {
                     Topic topicFromDb = await ctx.Topics.FirstAsync(t => t.Id == topic.Id);
-                    // 数据库中的答案与上传的答案相同
-                    if (topicFromDb.Answer == topic.Answer)
+                    // 如果题目是简答题的话
+                    if (topicFromDb.Type == "4")
                     {
-                        score += topicFromDb.Score;
+                        float value = comparator.Compare(topicFromDb.Answer, topic.Answer);
+                        // 如果这个值大于0.06的话就是正确的
+                        if (value > 0.06)
+                        {
+                            score += topicFromDb.Score;
+                        }
+                        else { 
+                            // 错误记录
+                            ErrorRecord errorRecord = new ErrorRecord();
+                            errorRecord.User = currentUser;
+                            errorRecord.Topic = topicFromDb;
+                            errorRecord.Answer = topic.Answer;
+                            errorRecord.CreateTime = DateTime.Now;
+                            errorRecord.UpdateTime = DateTime.Now;
+                            errorList.Add(errorRecord);
+                        }
+                    }
+                    else {
+                        // 其他题型的话，直接对比答案
+                        // 数据库中的答案与上传的答案相同
+                        if (topicFromDb.Answer == topic.Answer)
+                        {
+                            score += topicFromDb.Score;
+                        }
+                        else {
+                            // 错误记录
+                            ErrorRecord errorRecord = new ErrorRecord();
+                            errorRecord.User = currentUser;
+                            errorRecord.Topic = topicFromDb;
+                            errorRecord.Answer = topic.Answer;
+                            errorRecord.CreateTime = DateTime.Now;
+                            errorRecord.UpdateTime = DateTime.Now;
+                            errorList.Add(errorRecord);
+                        }
                     }
                 }
                 Paper paper = await ctx.Papers.FirstAsync(p => p.Id == request.Id);
@@ -515,10 +552,12 @@ namespace ExamSystemAPI.Services
                 ExamRecord examRecord = new ExamRecord();
                 examRecord.Name = paper.Title;
                 examRecord.Score = score;
-                examRecord.User = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
+                examRecord.User = currentUser;
                 examRecord.CreateTime = DateTime.Now;
                 examRecord.UpdateTime = DateTime.Now;
                 await ctx.ExamRecords.AddAsync(examRecord);
+                // 插入错题记录表
+                await ctx.ErrorRecords.AddRangeAsync(errorList);
                 return await ctx.SaveChangesAsync() > 0 ? new ApiResponse(200, "批改成功") : new ApiResponse(500, "批改失败");
             }
             catch (Exception ex)

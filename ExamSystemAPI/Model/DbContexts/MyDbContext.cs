@@ -13,6 +13,7 @@ namespace ExamSystemAPI.Model.DbContexts
         public DbSet<Team> Teams { get; set; }
         public DbSet<Image> Images { get; set; }
         public DbSet<ExamRecord> ExamRecords { get; set; }
+        public DbSet<ErrorRecord> ErrorRecords { get; set; }
         public DbSet<PaperTeam> PaperTeams { get; set; }
         public DbSet<PaperTopic> PaperTopics { get; set; }
 
