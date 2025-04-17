@@ -20,5 +20,6 @@ namespace ExamSystemAPI.Interfaces
         Task<BaseReponse> GetMyExam();
         Task<BaseReponse> GetExamDetail(long paperId, long teamId);
         Task<BaseReponse> MarkPaper(MarkPaperRequest request);
+        Task<BaseReponse> GetErrorSets();
     }
 }

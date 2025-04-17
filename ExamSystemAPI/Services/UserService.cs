@@ -507,6 +507,7 @@ namespace ExamSystemAPI.Services
                 double score = 0;
                 foreach (var topic in topics)
                 {
+                    bool sign = false;
                     Topic topicFromDb = await ctx.Topics.FirstAsync(t => t.Id == topic.Id);
                     // 如果题目是简答题的话
                     if (topicFromDb.Type == "4")
@@ -514,37 +515,53 @@ namespace ExamSystemAPI.Services
                         float value = comparator.Compare(topicFromDb.Answer, topic.Answer);
                         // 如果这个值大于0.06的话就是正确的
                         if (value > 0.06)
-                        {
                             score += topicFromDb.Score;
+                        else
+                            sign = true;
+                    }
+                    // 填空题
+                    else if (topicFromDb.Type == "3") {
+                        // 答案中放置答案的个数
+                        double singleScore = topicFromDb.Score / Convert.ToInt32(topicFromDb.Answer);
+                        if (topic.Answer.Contains('#'))
+                        {
+                            string[] answers = topic.Answer.Split('#');
+                            for (int i = 0; i < answers.Length; i++) { 
+                                float value = comparator.Compare(answers[i], topic.Answer);
+                                if (value > 0.06)
+                                    score += singleScore;
+                                else
+                                    sign = true;
+                            }
                         }
                         else { 
-                            // 错误记录
-                            ErrorRecord errorRecord = new ErrorRecord();
-                            errorRecord.User = currentUser;
-                            errorRecord.Topic = topicFromDb;
-                            errorRecord.Answer = topic.Answer;
-                            errorRecord.CreateTime = DateTime.Now;
-                            errorRecord.UpdateTime = DateTime.Now;
-                            errorList.Add(errorRecord);
+                            float value = comparator.Compare(topic.Answer, topic.Answer);
+                            if (value > 0.06)
+                                score += singleScore;
+                            else 
+                                sign = true;
                         }
                     }
-                    else {
+                    else
+                    {
                         // 其他题型的话，直接对比答案
                         // 数据库中的答案与上传的答案相同
                         if (topicFromDb.Answer == topic.Answer)
-                        {
                             score += topicFromDb.Score;
-                        }
-                        else {
-                            // 错误记录
-                            ErrorRecord errorRecord = new ErrorRecord();
-                            errorRecord.User = currentUser;
-                            errorRecord.Topic = topicFromDb;
-                            errorRecord.Answer = topic.Answer;
-                            errorRecord.CreateTime = DateTime.Now;
-                            errorRecord.UpdateTime = DateTime.Now;
-                            errorList.Add(errorRecord);
-                        }
+                        else
+                            sign = true;
+                    }
+
+                    // 查看标记是true的话，就是错误的
+                    if (sign) {
+                        // 错误记录
+                        ErrorRecord errorRecord = new ErrorRecord();
+                        errorRecord.User = currentUser;
+                        errorRecord.Topic = topicFromDb;
+                        errorRecord.Answer = topic.Answer;
+                        errorRecord.CreateTime = DateTime.Now;
+                        errorRecord.UpdateTime = DateTime.Now;
+                        errorList.Add(errorRecord);
                     }
                 }
                 Paper paper = await ctx.Papers.FirstAsync(p => p.Id == request.Id);
@@ -565,6 +582,17 @@ namespace ExamSystemAPI.Services
                 return new ApiResponse(500, ex.Message);
             }
 
+        }
+
+        /// <summary>
+        /// 获取错题集信息
+        /// </summary>
+        /// <returns></returns>
+        public async Task<BaseReponse> GetErrorSets()
+        {
+            User user = (await userManager.FindByIdAsync(httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value))!;
+            var list = await ctx.ErrorRecords.Include(e => e.Topic).Where(e => e.User == user).ToListAsync();
+            return new ApiResponse(200, "获取成功", list);
         }
     }
 }

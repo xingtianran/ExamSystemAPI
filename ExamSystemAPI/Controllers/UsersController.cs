@@ -141,5 +141,12 @@ namespace ExamSystemAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         public Task<BaseReponse> MarkPaper([FromBody]MarkPaperRequest request) => userService.MarkPaper(request);
+
+        /// <summary>
+        /// 获取错题集信息
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public Task<BaseReponse> GetErrorSets() => userService.GetErrorSets();
     }
 }
