@@ -6,6 +6,7 @@ using ExamSystemAPI.Model;
 using ExamSystemAPI.Model.DbContexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System.Data.Common;
 using System.Security.Claims;
 
@@ -19,8 +20,9 @@ namespace ExamSystemAPI.Services
         private readonly JWTHelper jwtHelper;
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly MyDbContext ctx;
+        private readonly DeepSeekService deepSeekService;
 
-        public UserService(UserManager<User> userManager, RoleManager<Role> roleManager, ClaimHelper claimHelper, JWTHelper jwtHelper, IHttpContextAccessor httpContextAccessor, MyDbContext ctx)
+        public UserService(UserManager<User> userManager, RoleManager<Role> roleManager, ClaimHelper claimHelper, JWTHelper jwtHelper, IHttpContextAccessor httpContextAccessor, MyDbContext ctx, DeepSeekService deepSeekService)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
@@ -28,6 +30,7 @@ namespace ExamSystemAPI.Services
             this.jwtHelper = jwtHelper;
             this.httpContextAccessor = httpContextAccessor;
             this.ctx = ctx;
+            this.deepSeekService = deepSeekService;
         }
 
         /// <summary>
@@ -512,9 +515,9 @@ namespace ExamSystemAPI.Services
                     // 如果题目是简答题的话
                     if (topicFromDb.Type == "4")
                     {
-                        float value = comparator.Compare(topicFromDb.Answer, topic.Answer);
+                        string content = await deepSeekService.PostInfoAsync(topic.Answer, topicFromDb.Answer);
                         // 如果这个值大于0.06的话就是正确的
-                        if (value > 0.06)
+                        if (content.Trim() == "正确")
                             score += topicFromDb.Score;
                         else
                             sign = true;
@@ -526,17 +529,17 @@ namespace ExamSystemAPI.Services
                         if (topic.Answer.Contains('#'))
                         {
                             string[] answers = topic.Answer.Split('#');
-                            for (int i = 0; i < answers.Length; i++) { 
-                                float value = comparator.Compare(answers[i], topic.Answer);
-                                if (value > 0.06)
+                            for (int i = 0; i < answers.Length; i++) {
+                                string content = await deepSeekService.PostInfoAsync(topic.Answer, topicFromDb.Answer);
+                                if (content.Trim() == "正确")
                                     score += singleScore;
                                 else
                                     sign = true;
                             }
                         }
-                        else { 
-                            float value = comparator.Compare(topic.Answer, topic.Answer);
-                            if (value > 0.06)
+                        else {
+                            string content = await deepSeekService.PostInfoAsync(topic.Answer, topicFromDb.Answer);
+                            if (content.Trim() == "正确")
                                 score += singleScore;
                             else 
                                 sign = true;
